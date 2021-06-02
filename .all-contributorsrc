@@ -1,0 +1,24 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "FitzsimmonsCM",
+      "name": "Christina Fitzsimmons",
+      "avatar_url": "https://avatars.githubusercontent.com/u/33811247?v=4",
+      "profile": "https://github.com/FitzsimmonsCM",
+      "contributions": [
+        "code"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "METTL7",
+  "projectOwner": "FitzsimmonsCM",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true
+}
