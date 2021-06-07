@@ -13,7 +13,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- markdownlint-disable -->
 <table>
   <tr>
-    <td align="center"><a href="https://github.com/FitzsimmonsCM"><img src="https://avatars.githubusercontent.com/u/33811247?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Christina Fitzsimmons</b></sub></a><br /><a href="https://github.com/FitzsimmonsCM/METTL7/commits?author=FitzsimmonsCM" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/FitzsimmonsCM"><img src="https://avatars.githubusercontent.com/u/33811247?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Christina Fitzsimmons</b></sub></a><br /><a href="https://github.com/FitzsimmonsCM/METTL7/commits?author=FitzsimmonsCM" title="Code">💻</a> <a href="https://github.com/FitzsimmonsCM/METTL7/commits?author=FitzsimmonsCM" title="Documentation">📖</a> <a href="#ideas-FitzsimmonsCM" title="Ideas, Planning, & Feedback">🤔</a> <a href="#question-FitzsimmonsCM" title="Answering Questions">💬</a></td>
   </tr>
 </table>
 
