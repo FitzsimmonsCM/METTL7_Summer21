@@ -219,16 +219,105 @@ pre code {
 
 
 <!-- rnb-text-begin -->
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>This notebook serves as an introduction to Rnotebooks using the fun and silly <code>cowsay</code> library which makes easy to print messages or warnings with various animals. You’ll notice we have 2 kinds of blocks in this notebook. Whitespace, where we can type longer notes and comments to ourselves much like a digial notebook, and code blocks (the grey blocks below)</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShjb3dwbG90KVxuYGBgIn0= -->
-<pre class="r"><code>library(cowplot)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBUaGUgdHlwZSBvZiBjb2RlYmxvY2sgKFIsIGJhc2gsIHB5dGhvbiwgZXRjKSBpcyBpbmRpY2F0ZWQgaW4gdGhlIHVwcGVyIGxlZnQuIFxuIyBUbyBydW4gdGhlIGNvZGUgaW4gdGhlIGNvZGVibG9jaywgY2xpY2sgdGhlIGdyZWVuIGFycm93IGluIHRoZSB1cHBlciByaWdodC4gXG5cbiMgVGhpcyBjb2RlYmxvY2sgbG9hZHMgdGhlIGxpYnJhcnkuXG5saWJyYXJ5KGNvd3NheSlcblxuIyBBbnl0aGluZyBJIHdyaXRlIGFmdGVyIHRoZSBwb3VuZCBzeW1ib2wgaXMgaWdub3JlZCBhcyBhIGNvbW1lbnQuIFxuYGBgIn0= -->
+<pre class="r"><code># The type of codeblock (R, bash, python, etc) is indicated in the upper left. 
+# To run the code in the codeblock, click the green arrow in the upper right. 
+
+# This codeblock loads the library.
+library(cowsay)
+
+# Anything I write after the pound symbol is ignored as a comment. </code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
+</div>
+<div id="animals" class="section level1">
+<h1>Animals</h1>
+<p>There are over 40 animals that you can access in <code>cowsay</code>. You can list the available animals with the following command:</p>
 <!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc29ydChuYW1lcyhhbmltYWxzKSlcbmBgYCJ9 -->
+<pre class="r"><code>sort(names(animals))</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>In <code>cowsay</code> you can call on any animal in the package and make it say whatever you want. For example:</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2F5KFwid2h5IGRpZCB0aGUgY2hpY2tlbiBjcm9zcyB0aGUgcm9hZFwiLCBcImNoaWNrZW5cIilcbmBgYCJ9 -->
+<pre class="r"><code>say(&quot;why did the chicken cross the road&quot;, &quot;chicken&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2F5KFwiYm9vIVwiLCBcImdob3N0XCIpXG5gYGAifQ== -->
+<pre class="r"><code>say(&quot;boo!&quot;, &quot;ghost&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="special-commands" class="section level1">
+<h1>Special commands</h1>
+<div id="catfact" class="section level2">
+<h2>catfact</h2>
+<p><code>catfact</code> will print a new fact about cats each time the code is run. Try running this block a few times and reading the new facts</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2F5KFwiY2F0ZmFjdFwiLCBcImNhdFwiKVxuYGBgIn0= -->
+<pre class="r"><code>say(&quot;catfact&quot;, &quot;cat&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="time" class="section level2">
+<h2>time</h2>
+<p><code>time</code> is another special command that will print the current date and time</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2F5KCd0aW1lJylcbmBgYCJ9 -->
+<pre class="r"><code>say(&#39;time&#39;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="signbunny" class="section level2">
+<h2>signbunny</h2>
+<p><code>signbunny</code> is a commonly used internet meme</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2F5KGJ5PSdzaWduYnVubnknKVxuYGBgIn0= -->
+<pre class="r"><code>say(by=&#39;signbunny&#39;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+</div>
+<div id="color" class="section level1">
+<h1>Color</h1>
+<p>You can also add color to the animals by using the crayon package. All colors() are all supported as are any rgb values that evaluate to a string.</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShqc29ubGl0ZSlcblxuc2F5KHdoYXQgPSBcImZvcnR1bmVcIixcbiAgICBieSA9IFwic3F1aXJyZWxcIixcbiAgICB3aGF0X2NvbG9yID0gXCIjRkYwMDk5XCIsXG4gICAgYnlfY29sb3IgPSBcInJlZFwiKVxuXG5gYGAifQ== -->
+<pre class="r"><code>library(jsonlite)
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiQ29saW4gUHJhY3RpY2UgTm90ZWJvb2siCm91dHB1dDogaHRtbF9ub3RlYm9vawphdXRob3I6IENvbGluIEZpc2NoZXIKZGF0ZTogMjAyMS0wNi0wOAotLS0KCgpgYGB7cn0KbGlicmFyeShjb3dwbG90KQpgYGAKCgoK</div>
+say(what = &quot;fortune&quot;,
+    by = &quot;squirrel&quot;,
+    what_color = &quot;#FF0099&quot;,
+    by_color = &quot;red&quot;)
+</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>#Practice Problems: 1) Have a chicken tell a road crossing joke 2) Have a green yoda say something about the dark side 3) Have a blue shark say the date of the next upcoming shark week 4) Have your favorite animal (from the list) say your name</p>
+<p>Done!</p>
+<!-- rnb-text-end -->
+</div>
+
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiQ29saW4gUHJhY3RpY2UgTm90ZWJvb2siCm91dHB1dDogaHRtbF9ub3RlYm9vawphdXRob3I6IENvbGluIEZpc2NoZXIKZGF0ZTogMjAyMS0wNi0wOAotLS0KIyBJbnRyb2R1Y3Rpb24KVGhpcyBub3RlYm9vayBzZXJ2ZXMgYXMgYW4gaW50cm9kdWN0aW9uIHRvIFJub3RlYm9va3MgdXNpbmcgdGhlIGZ1biBhbmQgc2lsbHkgYGNvd3NheWAgbGlicmFyeSB3aGljaCBtYWtlcyBlYXN5IHRvIHByaW50IG1lc3NhZ2VzIG9yIHdhcm5pbmdzIHdpdGggdmFyaW91cyBhbmltYWxzLiBZb3UnbGwgbm90aWNlIHdlIGhhdmUgMiBraW5kcyBvZiBibG9ja3MgaW4gdGhpcyBub3RlYm9vay4gV2hpdGVzcGFjZSwgd2hlcmUgd2UgY2FuIHR5cGUgbG9uZ2VyIG5vdGVzIGFuZCBjb21tZW50cyB0byBvdXJzZWx2ZXMgbXVjaCBsaWtlIGEgZGlnaWFsIG5vdGVib29rLCBhbmQgY29kZSBibG9ja3MgKHRoZSBncmV5IGJsb2NrcyBiZWxvdykKYGBge3J9CiMgVGhlIHR5cGUgb2YgY29kZWJsb2NrIChSLCBiYXNoLCBweXRob24sIGV0YykgaXMgaW5kaWNhdGVkIGluIHRoZSB1cHBlciBsZWZ0LiAKIyBUbyBydW4gdGhlIGNvZGUgaW4gdGhlIGNvZGVibG9jaywgY2xpY2sgdGhlIGdyZWVuIGFycm93IGluIHRoZSB1cHBlciByaWdodC4gCgojIFRoaXMgY29kZWJsb2NrIGxvYWRzIHRoZSBsaWJyYXJ5LgpsaWJyYXJ5KGNvd3NheSkKCiMgQW55dGhpbmcgSSB3cml0ZSBhZnRlciB0aGUgcG91bmQgc3ltYm9sIGlzIGlnbm9yZWQgYXMgYSBjb21tZW50LiAKYGBgCiMgQW5pbWFscwpUaGVyZSBhcmUgb3ZlciA0MCBhbmltYWxzIHRoYXQgeW91IGNhbiBhY2Nlc3MgaW4gYGNvd3NheWAuIFlvdSBjYW4gbGlzdCB0aGUgYXZhaWxhYmxlIGFuaW1hbHMgd2l0aCB0aGUgZm9sbG93aW5nIGNvbW1hbmQ6CmBgYHtyfQpzb3J0KG5hbWVzKGFuaW1hbHMpKQpgYGAKSW4gYGNvd3NheWAgeW91IGNhbiBjYWxsIG9uIGFueSBhbmltYWwgaW4gdGhlIHBhY2thZ2UgYW5kIG1ha2UgaXQgc2F5IHdoYXRldmVyIHlvdSB3YW50LiBGb3IgZXhhbXBsZToKYGBge3J9CnNheSgid2h5IGRpZCB0aGUgY2hpY2tlbiBjcm9zcyB0aGUgcm9hZCIsICJjaGlja2VuIikKYGBgCmBgYHtyfQpzYXkoImJvbyEiLCAiZ2hvc3QiKQpgYGAKIyBTcGVjaWFsIGNvbW1hbmRzCiMjIGNhdGZhY3QKYGNhdGZhY3RgIHdpbGwgcHJpbnQgYSBuZXcgZmFjdCBhYm91dCBjYXRzIGVhY2ggdGltZSB0aGUgY29kZSBpcyBydW4uIFRyeSBydW5uaW5nIHRoaXMgYmxvY2sgYSBmZXcgdGltZXMgYW5kIHJlYWRpbmcgdGhlIG5ldyBmYWN0cwpgYGB7cn0Kc2F5KCJjYXRmYWN0IiwgImNhdCIpCmBgYAojIyB0aW1lCmB0aW1lYCBpcyBhbm90aGVyIHNwZWNpYWwgY29tbWFuZCB0aGF0IHdpbGwgcHJpbnQgdGhlIGN1cnJlbnQgZGF0ZSBhbmQgdGltZSAKYGBge3J9CnNheSgndGltZScpCmBgYAojIyBzaWduYnVubnkKYHNpZ25idW5ueWAgaXMgYSBjb21tb25seSB1c2VkIGludGVybmV0IG1lbWUgCmBgYHtyfQpzYXkoYnk9J3NpZ25idW5ueScpCmBgYAojIENvbG9yCllvdSBjYW4gYWxzbyBhZGQgY29sb3IgdG8gdGhlIGFuaW1hbHMgYnkgdXNpbmcgdGhlIGNyYXlvbiBwYWNrYWdlLiBBbGwgY29sb3JzKCkgYXJlIGFsbCBzdXBwb3J0ZWQgYXMgYXJlIGFueSByZ2IgdmFsdWVzIHRoYXQgZXZhbHVhdGUgdG8gYSBzdHJpbmcuCmBgYHtyfQpsaWJyYXJ5KGpzb25saXRlKQoKc2F5KHdoYXQgPSAiZm9ydHVuZSIsCiAgICBieSA9ICJzcXVpcnJlbCIsCiAgICB3aGF0X2NvbG9yID0gIiNGRjAwOTkiLAogICAgYnlfY29sb3IgPSAicmVkIikKCmBgYAojUHJhY3RpY2UgUHJvYmxlbXM6CjEpIEhhdmUgYSBjaGlja2VuIHRlbGwgYSByb2FkIGNyb3NzaW5nIGpva2UKMikgSGF2ZSBhIGdyZWVuIHlvZGEgc2F5IHNvbWV0aGluZyBhYm91dCB0aGUgZGFyayBzaWRlCjMpIEhhdmUgYSBibHVlIHNoYXJrIHNheSB0aGUgZGF0ZSBvZiB0aGUgbmV4dCB1cGNvbWluZyBzaGFyayB3ZWVrCjQpIEhhdmUgeW91ciBmYXZvcml0ZSBhbmltYWwgKGZyb20gdGhlIGxpc3QpIHNheSB5b3VyIG5hbWUKCkRvbmUhIAo=</div>
 
 
 
