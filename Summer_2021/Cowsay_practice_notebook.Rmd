@@ -1,0 +1,61 @@
+---
+title: "Cowsay Practice Notebook"
+output: html_notebook
+author: Christina Fitzsimmons
+date: 2021-06-09
+---
+# Introduction
+This notebook serves as an introduction to Rnotebooks using the fun and silly `cowsay` library which makes easy to print messages or warnings with various animals. You'll notice we have 2 kinds of blocks in this notebook. Whitespace, where we can type longer notes and comments to ourselves much like a digial notebook, and code blocks (the grey blocks below)
+```{r}
+# The type of codeblock (R, bash, python, etc) is indicated in the upper left. 
+# To run the code in the codeblock, click the green arrow in the upper right. 
+# This codeblock loads the library.
+library(cowsay)
+# Anything I write after the pound symbol is ignored as a comment. 
+```
+# Animals
+There are over 40 animals that you can access in `cowsay`. You can list the available animals with the following command:
+```{r}
+sort(names(animals))
+```
+In `cowsay` you can call on any animal in the package and make it say whatever you want. For example:
+```{r}
+say("why did the chicken cross the road", "chicken")
+```
+```{r}
+say("boo!", "ghost")
+```
+# Special commands
+## catfact
+`catfact` will print a new fact about cats each time the code is run. Try running this block a few times and reading the new facts
+```{r}
+say("catfact", "cat")
+```
+## time
+`time` is another special command that will print the current date and time 
+```{r}
+library(cowplot)
+say('time')
+```
+## signbunny
+`signbunny` is a commonly used internet meme 
+```{r}
+say(by='signbunny')
+```
+# Color
+You can also add color to the animals by using the crayon package. All colors() are all supported as are any rgb values that evaluate to a string.
+```{r}
+library(jsonlite)
+say(what = "fortune",
+    by = "squirrel",
+    what_color = "#FF0099",
+    by_color = "red")
+```
+#Practice Problems:
+1) Change the author name and the date at the top of the notebook and save the notebook with a new name
+2) Have a chicken tell a road crossing joke
+3) Have a green yoda say something about the dark side
+4) Have a blue shark say the date of the next upcoming shark week
+5) Have your favorite animal (from the list) say your name
+
+Done! 
