@@ -1,0 +1,14 @@
+---
+title: "Ryan Practice DEseq Notebook"
+output: html_notebook
+author: Ryan Gensler
+date: 2021-06-08
+---
+
+
+```{r}
+library(cowplot)
+```
+
+
+
