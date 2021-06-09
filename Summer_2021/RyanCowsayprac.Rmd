@@ -1,7 +1,7 @@
 ---
 title: "Cowsay Practice Notebook"
 output: html_notebook
-author: Christina Fitzsimmons
+author: Ryan Gensler
 date: 2021-06-09
 ---
 # Introduction
@@ -58,4 +58,122 @@ say(what = "fortune",
 4) Have a blue shark say the date of the next upcoming shark week
 5) Have your favorite animal (from the list) say your name
 
+ ----- 
+Bad is the darkside 
+ ------ 
+    \   
+     \
+                   ____
+                _.' :  `._
+            .-.'`.  ;   .'`.-.
+   __      / : ___\ ;  /___ ; \      __
+  ,'_ ""--.:__;".-.";: :".-.":__;.--"" _`,
+  :' `.t""--.. '<@.`;_  ',@>` ..--""j.' `;
+       `:-.._J '-.-'L__ `-- ' L_..-;'
+          "-.__ ;  .-"  "-.  : __.-"
+             L ' /.------.\ ' J
+             "-.   "--"   .-"
+             __.l"-:_JL_;-";.__
+         .-j/'.;  ;""""  / .'\"-.
+         .' /:`. "-.:     .-" .';  `.
+      .-"  / ;  "-. "-..-" .-"  :    "-.
+  .+"-.  : :      "-.__.-"      ;-._   \
+  ; \  `.; ;                    : : "+. ;
+  :  ;   ; ;                    : ;  : \:
+  ;  :   ; :                    ;:   ;  :
+  : \  ;  :  ;                  : ;  /  ::
+  ;  ; :   ; :                  ;   :   ;:
+  :  :  ;  :  ;                : :  ;  : ;
+  ;\    :   ; :                ; ;     ; ;
+  : `."-;   :  ;              :  ;    /  ;
+ ;    -:   ; :              ;  : .-"   :
+  :\     \  :  ;            : \.-"      :
+  ;`.    \  ; :            ;.'_..--  / ;
+  :  "-.  "-:  ;          :/."      .'  :
+   \         \ :          ;/  __        :
+    \       .-`.\        /t-""  ":-+.   :
+     `.  .-"    `l    __/ /`. :  ; ; \  ;
+       \   .-" .-"-.-"  .' .'j \  /   ;/
+        \ / .-"   /.     .'.' ;_:'    ;
+  :-""-.`./-.'     /    `.___.'
+               \ `t  ._  /  bug
+                "-.t-._:'
+  
+> say("To get to the other side", chicken)
+Error in match.arg(by, c(choices = names(animals), "rms", "random")) : 
+  object 'chicken' not found
+> say("To get to the other side", "chicken")
+
+ ----- 
+To get to the other side 
+ ------ 
+    \   
+     \
+         _
+       _/ }
+      `>' \
+      `|   \
+       |   /'-.     .-.
+        \'     ';`--' .'
+         \'.    `'-./
+          '.`-..-;`
+            `;-..'
+            _| _|
+            /` /` [nosig]
+  
+> say("The next shark week is July 11-18th", "shark")
+
+ -------------- 
+The next shark week is July 11-18th 
+ --------------
+    \
+      \
+        \
+              /""-._
+              .       '-,
+               :          '',
+                ;      *     '.
+                 ' *         () '.
+                   \               \
+                    \      _.---.._ '.
+                    :  .' _.--''-''  \ ,'
+        .._           '/.'             . ;
+        ; `-.          ,                \'
+         ;   `,         ;              ._\
+          ;    \     _,-'                ''--._
+          :    \_,-'                          '-._
+          \ ,-'                       .          '-._
+          .'         __.-'';            \...,__       '.
+        .'      _,-'        \              \   ''--.,__  '\
+        /    _,--' ;         \              ;           \^.}
+        ;_,-' )     \  )\      )            ;
+             /       \/  \_.,-'             ;
+            /                              ;
+         ,-'  _,-'''-.    ,-.,            ;      PFA
+      ,-' _.-'        \  /    |/'-._...--'
+     :--``             )/
+  '
+  
+> say("hello Ryan", by = "monkey", type = "warning")
+Warning message:
+In say("hello Ryan", by = "monkey", type = "warning") : 
+ ------------- 
+hello Ryan 
+ -------------- 
+              \   
+               \  
+                \
+
+                  .="=.
+                _/.-.-.\_     _
+               ( ( o o ) )    ))
+                |/  "  \|    //
+                 \'---'/    //
+           jgs   /`"""`\\  ((
+                / /_,_\ \\  \\
+                \_\_'__/  \  ))
+                /`  /`~\   |//
+               /   /    \  /
+          ,--`,--'\/\    /
+          '-- "--'  '--'
 Done! 
