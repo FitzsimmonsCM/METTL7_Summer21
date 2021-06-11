@@ -1,0 +1,165 @@
+---
+title: "RNA-seq_analysis_walkthrough"
+output: rmdformats::readthedown
+author: "Christina M. Fitzsimmons"
+last updated: 2020-03-25
+
+---
+# Introduction 
+## A Basic Primer on the Analysis of RNA-Seq data
+This notebook is a basic analysis pipeline for RNAseq data from raw sequencing data through counting. It requires you to have access to Biowulf, Rstudio, and be familiar with basic unix commands. For each section, I have a short paragraph of explanation, followed by a sample script. These sample scripts were taken from the UOK262 and UOK268 analysis but they can be modified for your individual sequencing projects.
+
+# 1. Obtaining fastq or bcl data from the genomics core
+RAW fastq files may be obtained from either the CCR Genomics Core (across the hall) or the Frederick Sequencing Core. The first step is to import them into the BatistaLab_NGS folder on the Biowulf.
+
+## 1.1 *Accessing Data from the Frederick Sequencing Core*
+1)  Before you begin, confirm that you have access to the BatistaLab_NGS Biowulf account. Ask Christina to add you if you do not.
+2)  Follow the instructions on the NIH HPC website to setup a globus account on your personal laptop. https://hpc.nih.gov/storage/globus.html
+3)  In the email from NIH DME, follow the link provided to you. You will be asked to login with your NIH credentials.
+4)  In the top panel next to "collection" there are a number of icons. Select the "Download" icon. Before beginning, ensure there is enough space on Biowulf for your data. 
+5)  In a separate window, login to your globus account. You will be asked for your NIH credentials. 
+6)  Create a *new* shared endpoint with NIH HPC. Make sure the sequencing facility is given read/write permissions. 
+7)  Copy the UUID that is generated. Paste this UUID onto the "Download" screen where prompted. 
+8)  Depending upon the size of the data, transfer will take between 30 min to 3 hours. 
+
+## 1.2 *Accessing Data from the Genomics Core (Across the hall)*
+1)  Before you begin, confirm that you have access to the BatistaLab_NGS Biowulf account. Ask Christina to add you if you do not.
+2)  When your sequencing is complete, Steve or Madeline will send you a wget link to access your data. 
+3)  Login to your helix account and navigate to the Batista data directory (cd /data/BatistaLab_NGS/)
+4)  Create a new main-level directory for your project. Ensure that there is enough space in the BatistaLab_NGS folder to transfer your data. 
+5)  In the appropriate project folder, use wget to obtain your data. Depending upon the size of the data, transfer may take up to 1 hour. 
+
+## 1.3 bcl File Conversion
+The first step in the data analysis is to convert the binary bcl sequencing files to fastq file format for downstream analysis. The [bcl2fastq program](https://hpc.nih.gov/apps/bcl2fastq.html)is on the NIH biowulf and is the primary program for the conversion of Illumina data. In addition to file conversion, it also demultiplexes fastq files (separates them based on barcode). This program may be run on an sinteractive or sbatch session. A sample sbatch file is shown below. 
+
+**Note:** *Because bcl2fastq runs in a multi-threaded manner, it is critical to limit the number of threads or it will use all available.* 
+```{bash eval=FALSE}
+#! /bin/bash
+
+module load bcl2fastq/2.20.0 || exit 1
+bcl2fastq --runfolder-dir /path/to/your/run/folder/ \
+          --output-dir ./123456_out \
+          -r 4 -w 4 -p 14 \
+          --barcode-mismatches 0
+```
+# 2. Trimming Adaptors
+The first step in our data analysis is to remove Illumina sequencing adaptors. Adapter sequences should be removed because they interfere with downstream analyses, including alignment of reads to the reference genome. The adapters contain the sequencing primer binding sites, the index sequences, and the sites that allow library fragments to attach to the flow cell.  We will use the program Cutadapt to remove these sequences from our data. 
+
+Pedro also has a set of perl scripts from his postdoc lab (https://github.com/qczhang/icSHAPE) that are used for libraries sequenced with our custom barcodes. These scripts are available for general use on github. Ask Christina if you don't have access to the folder. 
+
+```{bash eval=FALSE}
+#! /bin/bash
+set -e
+ 
+r1=/path/to/read1.fastq
+r2=path/to/read2.fastq
+ 
+module load cutadapt/2.3 || exit 1
+cutadapt --nextseq-trim=20 --trim-n -m 20 \
+  --cores=$SLURM_CPUS_PER_TASK \
+  -b AGATCGGAAGAGCACACGTCTGAACTCCAGTCA -b AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT \ #Adaptors for read 1
+  -B AGATCGGAAGAGCACACGTCTGAACTCCAGTCA -B AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT \ #Adaptors for read 2
+  -o OCC_S33_comb_R1_001.trimm.fastq -p OCC_S33_comb_R2_001.trimm.fastq \
+#  $r1 $r2
+```
+# 3. MAPPPING TO THE GENOME
+The next step in our data analysis is to map the fastq sequences to a reference genome or transcriptome. This can be either a curated option (such as from gencode or UCSC) or a custom genome assembly. `STAR` is a fast and accurate splice-aware aligner that we like to use. It has several built-in genome reference maps and indexes that are available to be called upon for this type of project. If you cannot locate a suitable index, STAR may also be run in an index creation mode. 
+
+For the UOK262 project, mapping was completed in STAR/2.7.0f with samtools/1.9 and the Gencode v27 genome
+
+command line input was as follows:  
+  *sbatch --cpus-per-task=8 --mem=30g --partition=norm,ccr --mail-type=END,FAIL mapping_script.sh*
+```{bash eval=FALSE}
+#! /bin/bash
+# readFilesIn paired end syntax = path to read1.fastq /space/ path to read2.fastq
+set -o pipefail
+set -e
+     
+function fail {
+    echo "$@" >&2
+    exit 1
+    }
+     
+module load samtools/1.9         || fail "could not load samtools module"
+module load STAR/2.7.0f          || fail "could not load STAR module"
+cd /data/BatistaLab_NGS/UOK262_268trio/Combined_Reads/262Reads/HC/trimm             || fail "no such directory"
+
+mkdir -p HCA_mapped
+GENOME=/fdb/STAR_indices/2.7.0f/GENCODE/Gencode_human/release_27/genes-150
+
+STAR \
+    --runThreadN $SLURM_CPUS_PER_TASK \
+    --genomeDir $GENOME \
+    --sjdbOverhang 150 \
+    --readFilesIn /data/BatistaLab_NGS/UOK262_268trio/Combined_Reads/262Reads/HC/trimm/HCA_S4_comb_R1.trimm.fastq /data/BatistaLab_NGS/UOK262_268trio/Combined_Reads/262Reads/HC/trimm/HCA_S4_comb_R2.trimm.fastq \
+    --outSAMtype BAM Unsorted \
+    --outReadsUnmapped Fastx \
+    --outFileNamePrefix HCA_mapped/HCA.mapped \
+    –-outFilterType BySJout \
+    --outFilterMultimapNmax 10 \
+    --outFilterMismatchNmax 999 \
+    --outFilterMismatchNoverLmax 0.04 \
+    --alignIntronMin 20 \
+    --alignIntronMax 1000000 \
+    --alignMatesGapMax 1000000 \
+    --alignSJoverhangMin 8 \
+    --alignSJDBoverhangMin 1 \
+    --sjdbScore 1 \
+    --outFilterMatchNminOverLread 0.66 \
+    --quantMode TranscriptomeSAM \
+    --peOverlapNbasesMin 10 \
+    --alignEndsProtrude 10 ConcordantPair
+```
+# 4. Sorting Reads and Removing Duplicates
+## 4.1 *Sorting Reads*
+After mapping, the reads must be sorted before being passed to `Picard`. Picard doesn't like computationally intensive tasks, so running picard on an unsorted file will cause it to crash. There are 2 options for sorting your file:
+
+1)  You may have STAR output a sorted bam file (the step above). Be certain to request enough computational resources, as outputting sorted files requires can cause the mapping job to exceed its resources and fail. 
+2)  The second option is to use `samtools` to sort the output files after STAR finishes mapping. This is generally straightforward and the job finishes quickly. 
+```{bash eval=FALSE}
+#! /bin/bash
+set -e
+
+function fail {
+    echo "$@" >&2
+    exit 1
+}
+
+module load samtools/1.9       || fail "could not load samtools module"
+cd /data/BatistaLab_NGS/path/to/my/mapped/data/directory/ || fail "no such directory"
+samtools sort -m 30G -o mydata.mapped.sorted.out.bam -O bam mydata.mappedAligned.out.bam
+```
+## 4.2 *Removing Duplicates*
+The next step in our data analysis is PCR duplicate removal. PCR duplicates arise from multiple PCR products from the same template molecule binding on the flowcell. These are often removed because there is concern they can lead to false positive variant calls in the downstream data. 
+```{bash eval=FALSE}
+#! /bin/bash
+
+set -e
+module load picard
+java -Xmx4g -XX:ParallelGCThreads=5 -jar $PICARDJARPATH/picard.jar MarkDuplicates \
+    I=/data/BatistaLab_NGS/path/to/my/input/data/mydata.mapped.sorted.out.bam \
+    O=/data/BatistaLab_NGS/path/to/my/output/file/mydata_remove_dup.bam \
+    ASSUME_SORTED=true \
+    METRICS_FILE=mydata.mapped.metric.csv \
+    MAX_FILE_HANDLES_FOR_READ_ENDS_MAP=1000 \
+    VALIDATION_STRINGENCY=LENIENT \
+    REMOVE_DUPLICATES=TRUE 
+```
+# 5. Counting Reads
+Now that we have mapped our NGS data, the final step in our analysis is to count how many reads map to each feature. In the case of RNA-Seq, the features are typically genes. This data can then be analyzed in programs including DESeq2 or edgeR to look for genes that are differentially regulated. 
+```{bash eval=FALSE}
+#! /bin/bash
+set -e
+
+module load htseq
+htseq-count -m intersection-nonempty -s reverse -f bam -r pos -t exon -i gene_id /data/BatistaLab_NGS/path/to/my/input/data/mydata_remove_dup.bam /data/BatistaLab_NGS/path/to/gencode.v27.annotation.gtf > /data/BatistaLab_NGS/path/to/my/output/directory/mydata.picard.count
+
+# FLAGS
+# -m = mode (options = union / intersection-strict / intersection-nonempty)
+# -s = strand-specific (options = yes / no / reverse)
+# -r = how data are sorted (position / name)
+# -f = format of data (BAM / SAM)
+# -t = feature type (3rd column of GFF file; e.g. exons)
+# -i = GFF atribute to use as feature ID (default = gene_id)
+```
+Congratulations! You now have count files that are ready for differential expression analysis! Download these count files to the Batista Shared Folder. Ask Christina for her Rstudio notebook detailing how to analyze count files in DESeq2. 
