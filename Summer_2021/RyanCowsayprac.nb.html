@@ -224,178 +224,171 @@ pre code {
 <p>This notebook serves as an introduction to Rnotebooks using the fun and silly <code>cowsay</code> library which makes easy to print messages or warnings with various animals. You’ll notice we have 2 kinds of blocks in this notebook. Whitespace, where we can type longer notes and comments to ourselves much like a digial notebook, and code blocks (the grey blocks below)</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuIyBUaGUgdHlwZSBvZiBjb2RlYmxvY2sgKFIsIGJhc2gsIHB5dGhvbiwgZXRjKSBpcyBpbmRpY2F0ZWQgaW4gdGhlIHVwcGVyIGxlZnQuIFxuIyBUbyBydW4gdGhlIGNvZGUgaW4gdGhlIGNvZGVibG9jaywgY2xpY2sgdGhlIGdyZWVuIGFycm93IGluIHRoZSB1cHBlciByaWdodC4gXG4jIFRoaXMgY29kZWJsb2NrIGxvYWRzIHRoZSBsaWJyYXJ5LlxubGlicmFyeShjb3dzYXkpXG4jIEFueXRoaW5nIEkgd3JpdGUgYWZ0ZXIgdGhlIHBvdW5kIHN5bWJvbCBpcyBpZ25vcmVkIGFzIGEgY29tbWVudC4gXG5gYGBcbmBgYCJ9 -->
-<pre class="r"><code>```r
-# The type of codeblock (R, bash, python, etc) is indicated in the upper left. 
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBUaGUgdHlwZSBvZiBjb2RlYmxvY2sgKFIsIGJhc2gsIHB5dGhvbiwgZXRjKSBpcyBpbmRpY2F0ZWQgaW4gdGhlIHVwcGVyIGxlZnQuIFxuIyBUbyBydW4gdGhlIGNvZGUgaW4gdGhlIGNvZGVibG9jaywgY2xpY2sgdGhlIGdyZWVuIGFycm93IGluIHRoZSB1cHBlciByaWdodC4gXG4jIFRoaXMgY29kZWJsb2NrIGxvYWRzIHRoZSBsaWJyYXJ5LlxubGlicmFyeShjb3dzYXkpXG4jIEFueXRoaW5nIEkgd3JpdGUgYWZ0ZXIgdGhlIHBvdW5kIHN5bWJvbCBpcyBpZ25vcmVkIGFzIGEgY29tbWVudC4gXG5gYGAifQ== -->
+<pre class="r"><code># The type of codeblock (R, bash, python, etc) is indicated in the upper left. 
 # To run the code in the codeblock, click the green arrow in the upper right. 
 # This codeblock loads the library.
 library(cowsay)
 # Anything I write after the pound symbol is ignored as a comment. </code></pre>
-<pre><code>
-&lt;!-- rnb-source-end --&gt;
-
-&lt;!-- rnb-chunk-end --&gt;
-
-
-&lt;!-- rnb-text-begin --&gt;
-
-# Animals
-There are over 40 animals that you can access in `cowsay`. You can list the available animals with the following command:
-
-&lt;!-- rnb-text-end --&gt;
-
-
-&lt;!-- rnb-chunk-begin --&gt;
-
-
-&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuc29ydChuYW1lcyhhbmltYWxzKSlcbmBgYFxuYGBgIn0= --&gt;
-
-```r
-```r
-sort(names(animals))</code></pre>
-<pre><code>
-&lt;!-- rnb-source-end --&gt;
-
-&lt;!-- rnb-output-begin eyJkYXRhIjoiIFsxXSBcXGFudFxcICAgICAgICAgIFxcYW54aW91c2NhdFxcICAgXFxiYXRcXCAgICAgICAgICBcXGJhdDJcXCAgICAgICAgIFxcYmVoaW5kY2F0XFwgICAgXFxiaWdjYXRcXCAgICAgICBcXGJ1ZmZhbG9cXCAgICAgIFxcY2F0XFwgICAgICAgICAgXFxjaGlja2VuXFwgICAgIFxuWzEwXSBcXGNodWNrXFwgICAgICAgIFxcY2xpcHB5XFwgICAgICAgXFxjb3dcXCAgICAgICAgICBcXGRhZW1vblxcICAgICAgIFxcZHVja1xcICAgICAgICAgXFxkdWNrbGluZ1xcICAgICBcXGVncmV0XFwgICAgICAgIFxcZW5kbGVzc2hvcnNlXFwgXFxmYWNlY2F0XFwgICAgIFxuWzE5XSBcXGZpc2hcXCAgICAgICAgIFxcZnJvZ1xcICAgICAgICAgXFxnaG9zdFxcICAgICAgICBcXGdydW1weWNhdFxcICAgIFxcaHlwbm90b2FkXFwgICAgXFxsb25nY2F0XFwgICAgICBcXGxvbmd0YWlsY2F0XFwgIFxcbW9ua2V5XFwgICAgICAgXFxtdXNocm9vbVxcICAgIFxuWzI4XSBcXG93bFxcICAgICAgICAgIFxccGlnXFwgICAgICAgICAgXFxwb29wXFwgICAgICAgICBcXHB1bXBraW5cXCAgICAgIFxccmFiYml0XFwgICAgICAgXFxzaGFya1xcICAgICAgICBcXHNob3J0Y2F0XFwgICAgIFxcc2lnbmJ1bm55XFwgICAgXFxzbWFsbGNhdFxcICAgIFxuWzM3XSBcXHNub3dtYW5cXCAgICAgIFxcc3BpZGVyXFwgICAgICAgXFxzcXVpcnJlbFxcICAgICBcXHNxdWlycmVsMlxcICAgIFxcc3RyZXRjaHljYXRcXCAgXFx0cmlsb2JpdGVcXCAgICBcXHR1cmtleVxcICAgICAgIFxceW9kYVxcICAgICAgICBcbiJ9 --&gt;
-</code></pre>
-<p>[1]                  <br />
-[10]                 <br />
-[19]                  <br />
-[28]                  <br />
-[37]                </p>
-<pre><code>
-
-
-&lt;!-- rnb-output-end --&gt;
-
-&lt;!-- rnb-chunk-end --&gt;
-
-
-&lt;!-- rnb-text-begin --&gt;
-
-In `cowsay` you can call on any animal in the package and make it say whatever you want. For example:
-
-&lt;!-- rnb-text-end --&gt;
-
-
-&lt;!-- rnb-chunk-begin --&gt;
-
-
-&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuc2F5KFxcd2h5IGRpZCB0aGUgY2hpY2tlbiBjcm9zcyB0aGUgcm9hZFxcLCBcXGNoaWNrZW5cXClcbmBgYFxuYGBgIn0= --&gt;
-
-```r
-```r
-say(\why did the chicken cross the road\, \chicken\)</code></pre>
-<pre><code>
-&lt;!-- rnb-source-end --&gt;
-
-&lt;!-- rnb-chunk-end --&gt;
-
-
-&lt;!-- rnb-chunk-begin --&gt;
-
-
-&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuc2F5KFxcYm9vIVxcLCBcXGdob3N0XFwpXG5gYGBcbmBgYCJ9 --&gt;
-
-```r
-```r
-say(\boo!\, \ghost\)</code></pre>
-<pre><code>
-&lt;!-- rnb-source-end --&gt;
-
-&lt;!-- rnb-chunk-end --&gt;
-
-
-&lt;!-- rnb-text-begin --&gt;
-
-# Special commands
-## catfact
-`catfact` will print a new fact about cats each time the code is run. Try running this block a few times and reading the new facts
-
-&lt;!-- rnb-text-end --&gt;
-
-
-&lt;!-- rnb-chunk-begin --&gt;
-
-
-&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuc2F5KFxcY2F0ZmFjdFxcLCBcXGNhdFxcKVxuYGBgXG5gYGAifQ== --&gt;
-
-```r
-```r
-say(\catfact\, \cat\)</code></pre>
-<pre><code>
-&lt;!-- rnb-source-end --&gt;
-
-&lt;!-- rnb-chunk-end --&gt;
-
-
-&lt;!-- rnb-text-begin --&gt;
-
-## time
-`time` is another special command that will print the current date and time 
-
-&lt;!-- rnb-text-end --&gt;
-
-
-&lt;!-- rnb-chunk-begin --&gt;
-
-
-&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxubGlicmFyeShjb3dwbG90KVxuc2F5KCd0aW1lJylcbmBgYFxuYGBgIn0= --&gt;
-
-```r
-```r
-library(cowplot)
-say(&#39;time&#39;)</code></pre>
-<pre><code>
-&lt;!-- rnb-source-end --&gt;
-
-&lt;!-- rnb-chunk-end --&gt;
-
-
-&lt;!-- rnb-text-begin --&gt;
-
-## signbunny
-`signbunny` is a commonly used internet meme 
-
-&lt;!-- rnb-text-end --&gt;
-
-
-&lt;!-- rnb-chunk-begin --&gt;
-
-
-&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuc2F5KGJ5PSdzaWduYnVubnknKVxuYGBgXG5gYGAifQ== --&gt;
-
-```r
-```r
-say(by=&#39;signbunny&#39;)</code></pre>
-<pre><code>
-&lt;!-- rnb-source-end --&gt;
-
-&lt;!-- rnb-chunk-end --&gt;
-
-
-&lt;!-- rnb-text-begin --&gt;
-
-# Color
-You can also add color to the animals by using the crayon package. All colors() are all supported as are any rgb values that evaluate to a string.
-
-&lt;!-- rnb-text-end --&gt;
-
-
-&lt;!-- rnb-chunk-begin --&gt;
-
-
-&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxubGlicmFyeShqc29ubGl0ZSlcbnNheSh3aGF0ID0gXFxmb3J0dW5lXFwsXG4gICAgYnkgPSBcXHNxdWlycmVsXFwsXG4gICAgd2hhdF9jb2xvciA9IFxcI0ZGMDA5OVxcLFxuICAgIGJ5X2NvbG9yID0gXFxyZWRcXClcbmBgYFxuYGBgIn0= --&gt;
-
-```r
-```r
-library(jsonlite)
-say(what = \fortune\,
-    by = \squirrel\,
-    what_color = \#FF0099\,
-    by_color = \red\)</code></pre>
-<p>```</p>
 <!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="animals" class="section level1">
+<h1>Animals</h1>
+<p>There are over 40 animals that you can access in <code>cowsay</code>. You can list the available animals with the following command:</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc29ydChuYW1lcyhhbmltYWxzKSlcbmBgYCJ9 -->
+<pre class="r"><code>sort(names(animals))</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiIFsxXSBcImFsbGlnYXRvclwiICAgIFwiYW50XCIgICAgICAgICAgXCJhbnhpb3VzY2F0XCIgICBcImJhdFwiICAgICAgICAgIFwiYmF0MlwiICAgICAgICBcbiBbNl0gXCJiZWhpbmRjYXRcIiAgICBcImJpZ2NhdFwiICAgICAgIFwiYnVmZmFsb1wiICAgICAgXCJjYXRcIiAgICAgICAgICBcImNoaWNrZW5cIiAgICAgXG5bMTFdIFwiY2h1Y2tcIiAgICAgICAgXCJjbGlwcHlcIiAgICAgICBcImNvd1wiICAgICAgICAgIFwiZGFlbW9uXCIgICAgICAgXCJkdWNrXCIgICAgICAgIFxuWzE2XSBcImR1Y2tsaW5nXCIgICAgIFwiZWdyZXRcIiAgICAgICAgXCJlbmRsZXNzaG9yc2VcIiBcImZhY2VjYXRcIiAgICAgIFwiZmlzaFwiICAgICAgICBcblsyMV0gXCJmcm9nXCIgICAgICAgICBcImdob3N0XCIgICAgICAgIFwiZ29sZGZpc2hcIiAgICAgXCJncnVtcHljYXRcIiAgICBcImh5cG5vdG9hZFwiICAgXG5bMjZdIFwibG9uZ2NhdFwiICAgICAgXCJsb25ndGFpbGNhdFwiICBcIm1vbmtleVwiICAgICAgIFwibXVzaHJvb21cIiAgICAgXCJvd2xcIiAgICAgICAgIFxuWzMxXSBcInBpZ1wiICAgICAgICAgIFwicG9vcFwiICAgICAgICAgXCJwdW1wa2luXCIgICAgICBcInJhYmJpdFwiICAgICAgIFwic2hhcmtcIiAgICAgICBcblszNl0gXCJzaG9ydGNhdFwiICAgICBcInNpZ25idW5ueVwiICAgIFwic21hbGxjYXRcIiAgICAgXCJzbm93bWFuXCIgICAgICBcInNwaWRlclwiICAgICAgXG5bNDFdIFwic3F1aXJyZWxcIiAgICAgXCJzcXVpcnJlbDJcIiAgICBcInN0ZWdvc2F1cnVzXCIgIFwic3RyZXRjaHljYXRcIiAgXCJ0cmlsb2JpdGVcIiAgIFxuWzQ2XSBcInR1cmtleVwiICAgICAgIFwid2hhbGVcIiAgICAgICAgXCJ3b2xmXCIgICAgICAgICBcInlvZGFcIiAgICAgICAgXG4ifQ== -->
+<pre><code> [1] &quot;alligator&quot;    &quot;ant&quot;          &quot;anxiouscat&quot;   &quot;bat&quot;          &quot;bat2&quot;        
+ [6] &quot;behindcat&quot;    &quot;bigcat&quot;       &quot;buffalo&quot;      &quot;cat&quot;          &quot;chicken&quot;     
+[11] &quot;chuck&quot;        &quot;clippy&quot;       &quot;cow&quot;          &quot;daemon&quot;       &quot;duck&quot;        
+[16] &quot;duckling&quot;     &quot;egret&quot;        &quot;endlesshorse&quot; &quot;facecat&quot;      &quot;fish&quot;        
+[21] &quot;frog&quot;         &quot;ghost&quot;        &quot;goldfish&quot;     &quot;grumpycat&quot;    &quot;hypnotoad&quot;   
+[26] &quot;longcat&quot;      &quot;longtailcat&quot;  &quot;monkey&quot;       &quot;mushroom&quot;     &quot;owl&quot;         
+[31] &quot;pig&quot;          &quot;poop&quot;         &quot;pumpkin&quot;      &quot;rabbit&quot;       &quot;shark&quot;       
+[36] &quot;shortcat&quot;     &quot;signbunny&quot;    &quot;smallcat&quot;     &quot;snowman&quot;      &quot;spider&quot;      
+[41] &quot;squirrel&quot;     &quot;squirrel2&quot;    &quot;stegosaurus&quot;  &quot;stretchycat&quot;  &quot;trilobite&quot;   
+[46] &quot;turkey&quot;       &quot;whale&quot;        &quot;wolf&quot;         &quot;yoda&quot;        </code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>In <code>cowsay</code> you can call on any animal in the package and make it say whatever you want. For example:</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2F5KFwid2h5IGRpZCB0aGUgY2hpY2tlbiBjcm9zcyB0aGUgcm9hZFwiLCBcImNoaWNrZW5cIilcbmBgYCJ9 -->
+<pre class="r"><code>say(&quot;why did the chicken cross the road&quot;, &quot;chicken&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2F5KFwiYm9vIVwiLCBcImdob3N0XCIpXG5gYGAifQ== -->
+<pre class="r"><code>say(&quot;boo!&quot;, &quot;ghost&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG4gLS0tLS0gXG5ib28hIFxuIC0tLS0tLSBcbiAgICBcXCAgIFxuICAgICBcXFxuICAgICAuLS5cbiAgICAobyBvKVxuICAgIHwgTyBcXFxuICAgICBcXCAgIFxcXG4gICAgICBgfn5+JyBbbm9zaWddXG4gIFxuIn0= -->
+<pre><code>
+ ----- 
+boo! 
+ ------ 
+    \   
+     \
+     .-.
+    (o o)
+    | O \
+     \   \
+      `~~~&#39; [nosig]
+  </code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="special-commands" class="section level1">
+<h1>Special commands</h1>
+<div id="catfact" class="section level2">
+<h2>catfact</h2>
+<p><code>catfact</code> will print a new fact about cats each time the code is run. Try running this block a few times and reading the new facts</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2F5KFwiY2F0ZmFjdFwiLCBcImNhdFwiKVxuYGBgIn0= -->
+<pre class="r"><code>say(&quot;catfact&quot;, &quot;cat&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG4gLS0tLS0tLS0tLS0tLS0gXG5Nb3N0IGNhdHMgYWRvcmUgc2FyZGluZXMuIFxuIC0tLS0tLS0tLS0tLS0tXG4gICAgXFxcbiAgICAgIFxcXG4gICAgICAgIFxcXG4gICAgICAgICAgICB8XFxfX18vfFxuICAgICAgICAgID09KSBeWV4gKD09XG4gICAgICAgICAgICBcXCAgXiAgL1xuICAgICAgICAgICAgICk9Kj0oXG4gICAgICAgICAgICAvICAgICBcXFxuICAgICAgICAgICAgfCAgICAgfFxuICAgICAgICAgICAvfCB8IHwgfFxcXG4gICAgICAgICAgIFxcfCB8IHxffC9cXFxuICAgICAgamdzICAvL18vLyBfX18vXG4gICAgICAgICAgICAgICBcXF8pXG4gIFxuIn0= -->
+<pre><code>
+ -------------- 
+Most cats adore sardines. 
+ --------------
+    \
+      \
+        \
+            |\___/|
+          ==) ^Y^ (==
+            \  ^  /
+             )=*=(
+            /     \
+            |     |
+           /| | | |\
+           \| | |_|/\
+      jgs  //_// ___/
+               \_)
+  </code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="time" class="section level2">
+<h2>time</h2>
+<p><code>time</code> is another special command that will print the current date and time</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShjb3dwbG90KVxuYGBgIn0= -->
+<pre class="r"><code>library(cowplot)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRXJyb3IgaW4gbGlicmFyeShjb3dwbG90KSA6IHRoZXJlIGlzIG5vIHBhY2thZ2UgY2FsbGVkIOKAmGNvd3Bsb3TigJlcbiJ9 -->
+<pre><code>Error in library(cowplot) : there is no package called ‘cowplot’</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="signbunny" class="section level2">
+<h2>signbunny</h2>
+<p><code>signbunny</code> is a commonly used internet meme</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2F5KGJ5PSdzaWduYnVubnknKVxuYGBgIn0= -->
+<pre class="r"><code>say(by=&#39;signbunny&#39;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG4gLS0tLS0tLS0tLS0tLS0gXG5IZWxsbyB3b3JsZCEgXG4gLS0tLS0tLS0tLS0tLS1cbihcXF9fLykgfHxcbijigKLjhYXigKIpIHx8XG4vICAg44GlXG4gICAgICAgICAgW25vc2lnXVxuICAgIFxuIn0= -->
+<pre><code>
+ -------------- 
+Hello world! 
+ --------------
+(\__/) ||
+(•ㅅ•) ||
+/   づ
+          [nosig]
+    </code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+</div>
+<div id="color" class="section level1">
+<h1>Color</h1>
+<p>You can also add color to the animals by using the crayon package. All colors() are all supported as are any rgb values that evaluate to a string.</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShqc29ubGl0ZSlcbnNheSh3aGF0ID0gXCJmb3J0dW5lXCIsXG4gICAgYnkgPSBcInNxdWlycmVsXCIsXG4gICAgd2hhdF9jb2xvciA9IFwiI0ZGMDA5OVwiLFxuICAgIGJ5X2NvbG9yID0gXCJyZWRcIilcbmBgYCJ9 -->
+<pre class="r"><code>library(jsonlite)
+say(what = &quot;fortune&quot;,
+    by = &quot;squirrel&quot;,
+    what_color = &quot;#FF0099&quot;,
+    by_color = &quot;red&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiICAgICAgICAgICAgIC0tLS0tLSBcbiAgICAgICAgICBUaGUgbGVhcm5pbmcgY3VydmUgaXMgc3RlZXAgLSBidXQgdGhlbiBsaWtlIG1hbnkgcGVvcGxlLCBJJ2QgbGlrZSB0byBiZSBhYmxlIHRvIGRvIHNvcGhpc3RpY2F0ZWQgbW9kZWxsaW5nIHdpdGggZGVlcCB1bmRlcnN0YW5kaW5nIGFuZCBubyBlZmZvcnQgOi0pXG4gU2VhbiBPJ1Jpb3JkYWluXG4gaW4gYSB0aHJlYWQgYWJvdXQgdGhlIGhlbHBmdWxuZXNzIG9mIGRvY3VtZW50YXRpb25cbiBSLWhlbHBcbiBKdWx5IDIwMDUgXG4gICAgICAgICAgICAgLS0tLS0tIFxuICAgICAgICAgICAgICAgICBcXCAgIFxuICAgICAgICAgICAgICAgICAgXFwgIFxuICAgICAgICAgICAgICAgICAgIFxcXG4gICAgICAgICAgICAgICAgICAgICAgLiAuICAgICBcbiAgICAgICAgICAgICAgICAgICAgICB8XFx8XFxfICAgXG4gICAgICAgICAgICAgICAgICAgICAgLyAgXiBcXCAgXG4gICAgICAgICAgICAgICAgICAgICAvICBfLV8vwrAgXG4gICBcXFxcXFxcXFxcXFxcXFxcXFwgICAgICAgLyAgIC8gXFwgICAgXG4gIC8vLy8vLy8vLy8vLyAgIC8gIFxcIC8gfHwgICAgXG4gXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXCAvICAgL1xcXFwgXFxcXCAgICBcbi8vLy8vLy8vLy8vLy8vLy8gICAvICBcXFxcIFxcXFwgICBcbiBcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXC8gICAvICAvIGBgIGBgICBcbiAgICAgLy8vLy8vLy8vICAgXFwgIC8gIFxcICAgICAgXG4gTUwgICAgIFxcXFxcXFxcXFxcXF9fXy9fL19fXy8gICAgICBcbiJ9 -->
+<pre><code>             ------ 
+          The learning curve is steep - but then like many people, I&#39;d like to be able to do sophisticated modelling with deep understanding and no effort :-)
+ Sean O&#39;Riordain
+ in a thread about the helpfulness of documentation
+ R-help
+ July 2005 
+             ------ 
+                 \   
+                  \  
+                   \
+                      . .     
+                      |\|\_   
+                      /  ^ \  
+                     /  _-_/° 
+   \\\\\\\\\       /   / \    
+  ////////////   /  \ / ||    
+ \\\\\\\\\\\\\\ /   /\\ \\    
+////////////////   /  \\ \\   
+ \\\\\\\\\\\\\/   /  / `` ``  
+     /////////   \  /  \      
+ ML     \\\\\\___/_/___/      </code></pre>
+<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <p>#Practice Problems: 1) Change the author name and the date at the top of the notebook and save the notebook with a new name 2) Have a chicken tell a road crossing joke 3) Have a green yoda say something about the dark side 4) Have a blue shark say the date of the next upcoming shark week 5) Have your favorite animal (from the list) say your name</p>
