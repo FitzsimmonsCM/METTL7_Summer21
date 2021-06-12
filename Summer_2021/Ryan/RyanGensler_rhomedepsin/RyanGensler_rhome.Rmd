@@ -24,7 +24,7 @@ library (ggpubr) # library for making publication quality plots
 library(circlize) # library for ciruclar layout generation
 
 theme_set(theme_bw())
-setwd("/Users/ryangensler/Desktop/RyanGensler_rhomedepsin")
+setwd("/Users/ryangensler/Documents/GitHub/METTL7/Summer_2021/Ryan/RyanGensler_rhomedepsin")
 
 ```
 # 2. Importing the data for analysis
@@ -188,6 +188,6 @@ resOrdered_name <- gconvert(resOrderedDF_v2$ENSG_ID, organism = "hsapiens", targ
 res_export <- inner_join(resOrdered_name, resOrderedDF_v2, by = "ENSG_ID")
 
 # Export the dataframe to a csv file for downstream analysis
-write.csv(res_export, file="/Users/ryangensler/Desktop/RyanGensler_rhomedepsin/2021.06.12_Rhomedepsin_RNASeq_D9res_D9treatvscontrol.csv")
+write.csv(res_export, file="/Users/ryangensler/Documents/GitHub/METTL7/Summer_2021/Ryan/RyanGensler_rhomedepsin/2021.06.12_Rhomedepsin_RNASeq_D9res_D9treatvscontrol1.csv")
 ```
 
