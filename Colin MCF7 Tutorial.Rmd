@@ -1,0 +1,50 @@
+---
+title: "Colin MCF7 Data Import"
+output: html_notebook
+author: Colin Fischer
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+#set working directory to MCF7 folder
+setwd("~/Desktop/NCI:NIH/METTL7 Summer 2021/Tutorials/RNAseq_M7_MCF7")
+```
+
+
+```{r}
+#create directory obj needed for dds object later
+directory <- "~/Desktop/NCI:NIH/METTL7 Summer 2021/Tutorials/RNAseq_M7_MCF7"
+```
+
+```{r}
+#use list.files to read all the files in the MCF7 directory
+sampleFiles <- grep("sorted", list.files(directory),value=TRUE)
+#not 100% sure about this command, but I found this command as a way to take out a common string in each file and leave just the condition name in the file name so that R knows to call each file by its condition 
+sampleCondition <- sub("(.*sorted).*","\\1",sampleFiles)
+#assigning the sampleTable object that will contain all files in the MCF7 directory
+sampleTable <- data.frame(sampleName = sampleFiles,
+                          fileName = sampleFiles,
+                          condition = sampleCondition)
+#this is used to order the files by condition in the table
+sampleTable$condition <- factor(sampleTable$condition)
+```
+
+```{r}
+#attempting to make the dds object, hope it works!
+library(DESeq2)
+ddsMCF7 <- DESeqDataSetFromHTSeqCount(sampleTable = sampleTable,
+                                      directory = directory,
+                                      design = ~ condition)
+ddsMCF7
+```
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
