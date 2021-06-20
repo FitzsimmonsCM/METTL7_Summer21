@@ -1,0 +1,222 @@
+---
+title: "R Notebook"
+output: html_notebook
+author: 'Christina Fitzsimmons'
+date: 'Last updated 2021-06-20'
+---
+
+```{r}
+#libraries required for this session
+library(DESeq2)
+library(biomaRt)
+library(tidyverse)
+library(ComplexHeatmap)
+library(circlize)
+library("RColorBrewer")
+library("gplots")
+```
+
+# Read in data
+
+```{r}
+#DESeq2 analysis from HTseq tables
+setwd("/Users/fitzsimmonscm/Desktop/M7/ALLcounts")
+
+sampleFiles <- list.files(pattern="*.count")       #load files, make sure no other files include the word count
+sampleFiles                                        # checks the order of the files
+status <- factor(c(rep("HuT_Control",3), rep("HuT_Dp",3), rep("HuT_DpVp",3), rep("MCF7_Control",3), rep("MCF7_M300",3)))
+sampleTable <- data.frame (sampleName = sampleFiles, fileName = sampleFiles, status=status)
+directory <- "/Users/fitzsimmonscm/Desktop/M7/ALLcounts"
+head(sampleTable)
+sampleTable
+des <- formula(~status)
+
+ddsHTSeq <- DESeqDataSetFromHTSeqCount(sampleTable = sampleTable, directory = directory, design= des)
+
+```
+
+# Filter the data
+```{r}
+#filter the dataset (this is more stringent than removing all 0)
+#filters out genes that don't have at least 5 normalized reads in 3 samples
+#removed the filter using the normalized reads - values on the table were odd, almost every row had the same value
+
+nrow(ddsHTSeq)
+keep <- rowSums(counts(ddsHTSeq)) >= 10
+dds <- ddsHTSeq[keep,]
+#counts_RNA <- (counts(dds, normalize=FALSE)) # extract raw count data after normalization
+#write.csv (as.data.frame(counts_RNA), file="idx3.csv") #write out pre-analysis data set
+nrow(dds)
+head(dds)
+
+# Diferential expression analysis
+dds <- DESeq(dds) #creates the analysis
+```
+# Heatmaps and PCA        
+```{r}
+# Extracting transformed values - for heatmaps and scatter plots
+
+rld <- rlog(dds)
+vsd <- varianceStabilizingTransformation(dds)
+rlogMat <- assay (rld)
+vstMat <- assay (vsd)
+write.csv (as.data.frame(rlogMat), file="Romi_rlogMAt.csv")
+
+counts_RNA <- (counts(dds, normalize=T))
+write.csv (as.data.frame(counts_RNA), file="Romi_FILTER.csv")
+
+# Sample comparisons
+hmcol <- colorRampPalette(brewer.pal(9, "GnBu"))(100)
+distsRL <- dist(t(assay(rld)))
+mat <- as.matrix (distsRL) 
+rownames(mat) <- colnames (mat) <- with (colData (dds), paste (status, sep = " : "))
+hc <- hclust (distsRL)
+
+heatmap.2(mat, Rowv=as.dendrogram(hc), symm=TRUE, trace="none", col = rev (hmcol))
+
+plotPCA (rld,intgroup=c("status"))
+```
+# Analysis of Hut78 data
+```{r}
+res2 = results(dds, contrast=c("status","HuT_DpVp","HuT_Control"))
+summary(res2)
+write.csv(as.data.frame(res2), file="HuT_DpVp_HuT_Contro.csv")
+
+res2_noNA <- na.omit(res2)
+res2_sig <- res2_noNA [res2_noNA$padj<=0.05,]
+summary(res2_sig)
+dim (res2_sig)
+head (res2_sig)
+write.csv(as.data.frame(res2_sig), file="HuT_DpVp_HuT_Control_sig.csv")
+
+```
+# Annotate the results with biomart (gprofiler can also be used here)
+```{r}
+
+##annotate the resulst
+listMarts()
+ensembl=useMart("ENSEMBL_MART_ENSEMBL")
+ensembl = useDataset("hsapiens_gene_ensembl", mart=ensembl)
+filterType <- "ensembl_gene_id"
+filterValues2 <- rownames(res2_sig)
+
+#next line removes the version so that geneID can be used with different annotation versions
+gene_ids2 <- str_replace(filterValues2,
+                        pattern = ".[0-9]+$",
+                        replacement = "")
+
+attributeNames_2 <- c('ensembl_gene_id_version', 'external_gene_name', 'gene_biotype', 'ensembl_gene_id')
+
+# run the query
+
+annot_2 <- getBM(attributes=attributeNames_2, 
+                 filters = filterType, 
+                 values = gene_ids2, 
+                 mart = ensembl)
+
+annotLvV_2 <- as.data.frame(res2_sig)%>% 
+  rownames_to_column("ensembl_gene_id_version")
+
+fV_2 <- rownames(res2_sig)
+
+ensembl_gene_id_2 <- str_replace(fV_2,
+                               pattern = ".[0-9]+$",
+                               replacement = "")
+
+annotLvV_2 [, "ensembl_gene_id"] <- ensembl_gene_id_2
+
+res_final2 <- merge (annotLvV_2, annot_2, by="ensembl_gene_id")
+write.csv(as.data.frame(res_final2), file="HuT_DpVp_HuT_Control_final.csv")
+
+```
+
+# Plot counts of individual genes of interest
+```{r}
+##Data Visualization
+
+# Plot counts - check counts of individual genes
+plotCounts(dds, gene="ENSG00000136997.17", intgroup="status")  #Myc
+plotCounts(dds, gene="ENSG00000026025.15", intgroup="status")  #Vim
+plotCounts(dds, gene="ENSG00000165819.11", intgroup="status")  #METTL3
+plotCounts(dds, gene="ENSG00000145388.14", intgroup="status")  #METTL14
+plotCounts(dds, gene="ENSG00000140718.20", intgroup="status")  #FTO
+plotCounts(dds, gene="ENSG00000091542.8", intgroup="status")   #ALKBH5
+plotCounts(dds, gene="ENSG00000185432.11", intgroup="status")  #Mettl7
+
+# Visualize most significantly expressed gene: METTL7
+plotCounts(dds, gene = "ENSG00000185432.11", intgroup = ("status"),
+           returnData = T) %>% 
+  ggplot(aes(x=status, y=(count))) + ggtitle("ENSG00000185432.11; METTL7A") +
+  geom_point(aes(fill=status), pch=21, size=4) +
+  # facet_wrap(~CellType) +
+  expand_limits(y=0)
+```
+# Histogram and MA plots
+
+```{r}
+#p value histogram
+hist(res$pvalue)
+
+# MA plot 1 (for all genes)
+
+#A
+plotMA(res2, ylim=c(-10,10), main="Hut78 DpVp50 vs Control")
+identify(res$baseMean, res$log2FoldChange, labels = row.names(res))
+```
+# Volcano plot version 2
+```{r}
+# Volcano plot 2
+
+shrinkLvV <- res_final %>% 
+  mutate(TopGeneLabel=ifelse(pvalue<=0.05, external_gene_name, ""))
+
+filtTab <- shrinkLvV %>% 
+  filter(!is.na(padj)) %>% 
+  mutate(`-log10(padj)` = -log10(padj))
+ggplot(filtTab, aes(x = log2FoldChange, y=`-log10(padj)`)) + 
+  geom_point(aes(colour=padj < 0.05), size=2)
+
+
+```
+# Heatmap of top genes
+```{r}
+
+library(ComplexHeatmap)
+library(circlize)
+
+# get the top genes
+sigGenes <- as.data.frame(res_sig) %>% 
+  rownames_to_column("GeneID") %>% 
+  top_n(150, wt=-padj) %>% 
+  pull("GeneID")
+# filter the data for the top 200 by padj in the LRT test
+plotDat <- vst(dds)[sigGenes,] %>% 
+  assay()
+z.mat <- t(scale(t(plotDat), center=TRUE, scale=TRUE))
+# colour palette
+myPalette <- c("red3", "ivory", "blue3")
+myRamp = colorRamp2(c(-2, 0, 2), myPalette)
+
+Heatmap(z.mat, name = "z-score",
+        col = myRamp,            
+        show_row_name = FALSE,
+        cluster_columns = FALSE)
+
+
+
+# cluster the data and split the tree
+hcDat <- hclust(dist(z.mat))
+cutGroups <- cutree(hcDat, h=4)
+ha1 = HeatmapAnnotation(df = colData(dds), c ("status"))
+
+Heatmap(z.mat, name = "z-score",
+        col = myRamp,            
+        show_row_name = FALSE,
+        cluster_columns = FALSE,
+        #split=cutGroups,
+        #rect_gp = gpar(col = "darkgrey", lwd=0.5),
+        top_annotation = ha1)
+
+```
+
+
