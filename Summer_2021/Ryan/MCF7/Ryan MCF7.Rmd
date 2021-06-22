@@ -5,7 +5,6 @@ author: Ryan Gensler
 ---
 
 ```{r}
-
 # Import the libraries we will need for this analysis
 library (rmdformats) #library for nice html output of notebooks
 library(DESeq2) # library with tools / objects for differential expression analysis
@@ -20,24 +19,41 @@ library (ggpubr) # library for making publication quality plots
 library(pasilla)
 #library(ComplexHeatmap) # library for making genomic heatmaps
 library(circlize) # library for ciruclar layout generation
+```
 
+
+```{r}
 #set working directory
 theme_set(theme_bw())
 setwd("/Users/ryangensler/Documents/GitHub/METTL7/Summer_2021/Ryan/MCF7")
+```
 
+
+```{r}
 # make directory an object
 directory <- "/Users/ryangensler/Documents/GitHub/METTL7/Summer_2021/Ryan/MCF7"
-  
+```
+
+
+```{r}
 # 2. Pointing to HTSeq data
 sampleFiles <- grep("sorted", list.files(directory),value=TRUE)
+```
 
+
+```{r}
 #3. Setting the conditions
 condition <- c('MCF7_C-1.sorted.rmdup.count', 'MCF7_C-2.sorted.rmdup.count', 'MCF7_C-3.sorted.rmdup.count','MCF7_M300_1.sorted.rmdup.count', 'MCF7_M300_2.sorted.rmdup.count', 'MCF7_M300_3.sorted.rmdup.count')
+sampleCondition <- sub("(.*sorted).*","\\1",sampleFiles)
+```
 
+
+```{r}
 #4 Creating the sample table 
 sampleTable <- data.frame(sampleName = sampleFiles,
                           fileName = sampleFiles,
-                          condition = condition)
+                          condition = sampleCondition)
+sampleTable$condition <- factor(sampleTable$condition)
 #unsure why the tilda needs to be in front of 'condition'
 ddsHTSeq <- DESeqDataSetFromHTSeqCount(sampleTable = sampleTable,
                                        directory = directory,
