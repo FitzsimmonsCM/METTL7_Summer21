@@ -1,0 +1,110 @@
+---
+title: "Colin MCF7/Hut78 Import and Plotting"
+output: html_notebook
+author: Colin Fischer
+acknowledgments: Dr. Christina Fitzsimmons, NIH/NCI
+date created: 6/23/2021
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+
+```{r}
+#set working directory and create directory object
+setwd("~/Desktop/NCI:NIH/METTL7 Summer 2021/Tutorials/RNAseq_Hut78_M7_MCF7")
+directory = "~/Desktop/NCI:NIH/METTL7 Summer 2021/Tutorials/RNAseq_Hut78_M7_MCF7"
+```
+
+```{r}
+#libraries
+library(DESeq2)
+library(biomaRt)
+library(tidyverse)
+library(ComplexHeatmap)
+library(circlize)
+library("RColorBrewer")
+library("gplots")
+```
+
+
+```{r}
+#Load MCF7 and Hut78 files using the pattern "count"
+sampleFiles <- list.files(pattern = "*.count") #all files with ".count" put in sampleFiles object
+sampleFiles
+#make sure everything looks like it's in correct order
+```
+
+```{r}
+#now factor the replicates into their common conditions/treatments
+status <- factor(c(rep("HuT_Control",3), rep("HuT_Dp",3), rep("HuT_DpVp",3), rep("MCF7_Control",3), rep("MCF7_M300",3)))
+#notice order is same as sampleFiles
+```
+
+```{r}
+#create sampleTable object and des (design) object. Have to name des as design is a function in R
+sampleTable <- data.frame(sampleName = sampleFiles, fileName = sampleFiles, status=status)
+head(sampleTable)
+sampleTable
+des <- formula(~status) 
+#now have all three objects needed for HTSeq import
+ddsHTSeq <- DESeqDataSetFromHTSeqCount(sampleTable = sampleTable, directory = directory, design = des)
+```
+
+```{r}
+#Filter Counts
+
+#find out how many rows your dataset has
+nrow(ddsHTSeq)
+#keep all rows with count sums greater than or equal to 10
+keep <- rowSums(counts(ddsHTSeq)) >= 10
+#reassign filters to the object (bad to keep ddsHTSeq name here?)
+dds <- ddsHTSeq[keep,]
+nrow(dds)
+head(dds)
+#notice that your nrow is now way lower
+#create the DESeq2 object
+dds <- DESeq(dds)
+```
+
+```{r}
+#plotting heatmap to compare different samples
+rld <- rlog(dds)
+hmcol <- colorRampPalette(brewer.pal(9, "GnBu"))(100) #creates color palette for heatmap
+distsRL <- dist(t(assay(rld))) #creates object with distances between rows?
+mat <- as.matrix (distsRL) #creates matrix of count data by sample considering distances between counts?
+rownames(mat) <- colnames(mat) <- with(colData(dds), paste(status, sep = " : ")) #assigns column data of the dataset to be the column names of the matrix, then assigns that to be the row names?
+hc <- hclust(distsRL) #creates an object that calculates the clustering of the count distances?
+
+#plot heatmap
+heatmap.2(mat, Rowv=as.dendrogram(hc), symm=TRUE, trace="none", col = rev(hmcol))
+#plots the matrix in a symmetrical fashion with the Green/Blue color palette being reversed to Red/Yellow? Why not red/yellow? Dendrograms are the clusters of similar genes (similar to phylogenic tree plots)
+```
+```{r}
+#analyzing results and comparing different samples
+resMCF7 = results(dds, contrast=c("status","MCF7_M300","MCF7_Control")) # comparing MCF7 res to control
+summary(resMCF7) #summarizes results of the comparison of MCF7 res vs control
+
+resMCF7_noNA <- na.omit(resMCF7) #takes out cells of dataset with no counts, marked NA
+resMCF7_sig <- resMCF7_noNA [resMCF7_noNA$padj<=0.05,] #filters out any counts with padj value > 0.05
+summary(resMCF7_sig) #summarizes the significant results for you to view
+dim(resMCF7_sig) #retrieves the dimensions of the dataset
+head(resMCF7_sig) #shows the first few rows of the significant dataset
+res2MCF7 <- as.data.frame(resMCF7) #changing resMCF7 from S4 to a data frame
+
+```
+
+```{r}
+#volcano plot of some of MCF7 res vs control
+ggplot(data=res2MCF7, aes(x=log2FoldChange, y=-log10(padj))) + geom_point(aes(color=padj < 0.05)) + ggtitle("MCF7_M300 vs MCF7 Control") +xlab("log2 Fold Change") + ylab("-log10 padj")
+
+```
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
