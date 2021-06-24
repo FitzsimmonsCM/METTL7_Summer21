@@ -1,0 +1,309 @@
+---
+title: "Ryan MCF7 data Upload"
+output: html_document
+author: Ryan Gensler
+---
+
+```{r}
+# Import the libraries we will need for this analysis
+library(DESeq2)
+library(biomaRt)
+library(tidyverse)
+library(ComplexHeatmap)
+library(circlize)
+library(RColorBrewer)
+library(gplots)
+
+```
+
+
+```{r}
+#set working directory
+theme_set(theme_bw())
+setwd("/Users/ryangensler/Documents/GitHub/Mettl7./Summer_2021/Ryan/Hut78 analysis")
+```
+
+
+```{r}
+# make directory an object
+directory <- "/Users/ryangensler/Documents/GitHub/Mettl7./Summer_2021/Ryan/Hut78 analysis"
+```
+
+
+```{r}
+# 2. Pointing to HTSeq data
+sampleFiles <- list.files(pattern="*.count")
+sampleFiles
+status <- factor(c(rep("HUT78_Control",3), rep("HUT78_Dp",3), rep("HUT78_DpVp50",3)))
+```
+
+
+```{r}
+#3. Setting the conditions
+sampleCondition <- sub("(.*sorted).*","\\1",sampleFiles)
+
+```
+
+
+```{r}
+#Make the table 
+sampleTable <- data.frame (sampleName = sampleFiles, fileName = sampleFiles, status=status)
+head(sampleTable)
+sampleTable
+des <- formula(~status)
+directory <- "/Users/ryangensler/Documents/GitHub/Mettl7./Summer_2021/Ryan/Hut78 analysis"
+head(sampleTable)
+sampleTable
+des <- formula(~status)
+ddsHTSeq <- DESeqDataSetFromHTSeqCount(sampleTable = sampleTable, directory = directory, design= des)
+
+```
+
+
+```{r}
+nrow(ddsHTSeq)
+keep <- rowSums(counts(ddsHTSeq)) >= 5
+dds <- ddsHTSeq[keep,]
+counts_RNA <- (counts(dds, normalize=FALSE)) # extract raw count data after normalization
+write.csv (as.data.frame(counts_RNA), file="HUT78preanalysis.csv") 
+nrow(dds)
+head(dds)
+```
+
+```{r}
+#creating the data to analyze
+dds <- DESeq(dds) 
+```
+
+```{r}
+
+rld <- rlog(dds)
+vsd <- varianceStabilizingTransformation(dds)
+rlogMat <- assay (rld)
+vstMat <- assay (vsd)
+write.csv (as.data.frame(rlogMat), file="HUT78_rlogMAt.csv")
+
+counts_RNA <- (counts(dds, normalize=T))
+write.csv (as.data.frame(counts_RNA), file="Hut78_FILTER.csv")
+
+```
+
+```{r}
+#Comparing the samples (changed the colors to a colorblind friendly palate)
+pdf("heatmapfigures.pdf")
+hmcol <- colorRampPalette(brewer.pal(9, "PuOr"))(100)
+distsRL <- dist(t(assay(rld)))
+mat <- as.matrix (distsRL) 
+rownames(mat) <- colnames (mat) <- with (colData (dds), paste (status, sep = " : "))
+hc <- hclust (distsRL)
+
+heatmap.2(mat, Rowv=as.dendrogram(hc), symm=TRUE, trace="none", col = rev (hmcol))
+
+plotPCA (rld,intgroup=c("status"))
+```
+
+```{r}
+#Data analysis comparing MCF7 control and resistant
+comparisonres <- results(dds, contrast=c("status","HUT78_Control","HUT78_Dp"))
+summary(comparisonres)
+write.csv(as.data.frame(comparisonres), file="Hut78_C_Dp.csv")
+
+comparisonres_noNA <- na.omit(comparisonres)
+comparisonres_sig <- comparisonres_noNA [comparisonres_noNA$padj<=0.05,]
+summary(comparisonres_sig)
+dim (comparisonres_sig)
+head (comparisonres_sig)
+write.csv(as.data.frame(comparisonres_sig), file="Hut78_C_Dp.csv")
+```
+
+```{r}
+comparisonres2 <- results(dds, contrast=c("status","HUT78_Control","HUT78_DpVp50"))
+summary(comparisonres2)
+write.csv(as.data.frame(comparisonres2), file="Hut78_C_DpVp50.csv")
+
+comparisonres_noNA2 <- na.omit(comparisonres2)
+comparisonres_sig2 <- comparisonres_noNA2 [comparisonres_noNA2$padj<=0.05,]
+summary(comparisonres_sig2)
+dim (comparisonres_sig2)
+head (comparisonres_sig2)
+write.csv(as.data.frame(comparisonres_sig2), file="Hut78_C_DpVp50.csv")
+```
+
+```{r}
+comparisonres3 <- results(dds, contrast=c("status","HUT78_Dp","HUT78_DpVp50"))
+summary(comparisonres3)
+write.csv(as.data.frame(comparisonres3), file="Hut78_Dp_DpVp50.csv")
+
+comparisonres_noNA3 <- na.omit(comparisonres3)
+comparisonres_sig3 <- comparisonres_noNA3 [comparisonres_noNA3$padj<=0.05,]
+summary(comparisonres_sig3)
+dim (comparisonres_sig3)
+head (comparisonres_sig3)
+write.csv(as.data.frame(comparisonres_sig3), file="Hut78_Dp_DpVp50.csv")
+```
+
+```{r}
+#Number 1
+#Result annotation
+listMarts()
+ensembl=useMart("ENSEMBL_MART_ENSEMBL")
+ensembl = useDataset("hsapiens_gene_ensembl", mart=ensembl)
+filterType <- "ensembl_gene_id"
+filterValues2 <- rownames(comparisonres_sig)
+
+#next line removes the version so that geneID can be used with different annotation versions
+gene_ids2 <- str_replace(filterValues2,
+                        pattern = ".[0-9]+$",
+                        replacement = "")
+
+attributeNames_2 <- c('ensembl_gene_id_version', 'external_gene_name', 'gene_biotype', 'ensembl_gene_id')
+
+# run the query
+
+annot_2 <- getBM(attributes=attributeNames_2, 
+                 filters = filterType, 
+                 values = gene_ids2, 
+                 mart = ensembl)
+
+annotLvV_2 <- as.data.frame("comaparisonres_sig")%>% 
+  rownames_to_column("ensembl_gene_id_version")
+
+fV_2 <- rownames('comaparisonres_sig')
+
+ensembl_gene_id_2 <- str_replace(fV_2,
+                               pattern = ".[0-9]+$",
+                               replacement = "")
+
+annotLvV_2 [, "ensembl_gene_id"] <- ensembl_gene_id_2
+
+res_final2 <- merge (annotLvV_2, annot_2, by="ensembl_gene_id")
+write.csv(as.data.frame(res_final2), file="Hut78_C_DpV.csv")
+```
+
+
+```{r}
+pdf("genecountfigures.pdf")
+plotCounts(dds, gene="ENSG00000136997.17", intgroup="status")  #Myc
+plotCounts(dds, gene="ENSG00000026025.15", intgroup="status")  #Vim
+plotCounts(dds, gene="ENSG00000165819.11", intgroup="status")  #METTL3
+plotCounts(dds, gene="ENSG00000145388.14", intgroup="status")  #METTL14
+plotCounts(dds, gene="ENSG00000140718.20", intgroup="status")  #FTO
+plotCounts(dds, gene="ENSG00000091542.8", intgroup="status")   #ALKBH5
+plotCounts(dds, gene="ENSG00000185432.11", intgroup="status")  #Mettl7
+```
+
+
+```{r}
+pdf("Mettl7countfigure.pdf")
+#since Mettl7 is the most prevalent, we can now analyze it further is a ggplot 
+plotCounts(dds, gene = "ENSG00000185432.11", intgroup = ("status"),
+           returnData = T) %>% 
+  ggplot(aes(x=status, y=(count))) + ggtitle("ENSG00000185432.11; METTL7A") +
+# geom_point(color='darkred')
+geom_point(aes(fill=status), pch=23, size=6) +
+  #facet_wrap(~CellType) +
+  expand_limits(y=0)
+```
+```{r}
+#Look at vimentin using the same commands 
+pdf("vimentincountfigure.pdf")
+plotCounts(dds, gene = "ENSG00000026025.15", intgroup = ("status"),
+           returnData = T) %>% 
+  ggplot(aes(x=status, y=(count))) + ggtitle("ENSG00000026025.15; Vimentin") +
+# geom_point(color='darkred')
+geom_point(aes(fill=status), pch=21, size=6) +
+  #facet_wrap(~CellType) +
+  expand_limits(y=0)
+```
+
+```{r}
+#Histogram 
+pdf("MAfigures.pdf")
+hist(comparisonres$pvalue)
+
+#Log:Mean plot showing the two cell types similarity in gene expression
+plotMA(comparisonres, ylim=c(-10,10), main="HuT78 Naive vs HuT78_Dp")
+identify(comparisonres$baseMean, comparisonres$log2FoldChange, labels = row.names(comparisonres))
+
+plotMA(comparisonres2, ylim=c(-10,10), main="HuT78 Naive vs HuT78_DpVp50")
+identify(comparisonres2$baseMean, comparisonres2$log2FoldChange, labels = row.names(comparisonres2))
+
+plotMA(comparisonres3, ylim=c(-10,10), main="HuT78_Dp vs HuT78_DpVp50")
+identify(comparisonres3$baseMean, comparisonres3$log2FoldChange, labels = row.names(comparisonres3))
+```
+
+```{r}
+# Volcano plot 
+pdf("Volcanofigures.pdf")
+
+rescomparison <- as.data.frame(comparisonres)
+ggplot(data= rescomparison, aes(x = log2FoldChange, y=-log10(padj))) + geom_point(aes(colour=padj < 0.05), size=2)+ ggtitle("HuT78 Naive vs HuT78 Resistant") +xlab("log2 Fold Change") + ylab("-log10 padj")
+
+rescomparison2 <- as.data.frame(comparisonres2)
+ggplot(data= rescomparison2, aes(x = log2FoldChange, y=-log10(padj))) + geom_point(aes(colour=padj < 0.05), size=2)+ ggtitle("HuT78_C vs HuT78DpVp50") +xlab("log2 Fold Change") + ylab("-log10 padj")
+
+rescomparison3 <- as.data.frame(comparisonres3)
+ggplot(data= rescomparison3, aes(x = log2FoldChange, y=-log10(padj))) + geom_point(aes(colour=padj < 0.05), size=2)+ ggtitle("HuT78_Dp vs HuT78DpVp50") +xlab("log2 Fold Change") + ylab("-log10 padj")
+```
+
+
+```{r}
+#heatmap showing levels of gene expression
+# get the top genes
+pdf("topgeneheatmapstfigure.pdf")
+sigGenes <- as.data.frame(comparisonres_sig) %>% 
+  rownames_to_column("GeneID") %>% 
+  top_n(150, wt=-padj) %>% 
+  pull("GeneID")
+# filter the data for the top 200 by padj in the LRT test
+plotDat <- vst(dds)[sigGenes,] %>% 
+  assay()
+z.mat <- t(scale(t(plotDat), center=TRUE, scale=TRUE))
+# colour palette
+myPalette <- c("yellow", "azure", "red")
+myRamp = colorRamp2(c(-2, 0, 2), myPalette)
+
+Heatmap(z.mat, name = "z-score",
+        col = myRamp,            
+        show_row_name = FALSE,
+        cluster_columns = FALSE)
+
+sigGenes2 <- as.data.frame(comparisonres_sig2) %>% 
+  rownames_to_column("GeneID") %>% 
+  top_n(150, wt=-padj) %>% 
+  pull("GeneID")
+# filter the data for the top 200 by padj in the LRT test
+plotDat <- vst(dds)[sigGenes2,] %>% 
+  assay()
+z.mat <- t(scale(t(plotDat), center=TRUE, scale=TRUE))
+# colour palette
+myPalette <- c("yellow", "azure", "red")
+myRamp = colorRamp2(c(-2, 0, 2), myPalette)
+
+Heatmap(z.mat, name = "z-score",
+        col = myRamp,            
+        show_row_name = FALSE,
+        cluster_columns = FALSE)
+
+sigGenes3 <- as.data.frame(comparisonres_sig3) %>% 
+  rownames_to_column("GeneID") %>% 
+  top_n(150, wt=-padj) %>% 
+  pull("GeneID")
+# filter the data for the top 200 by padj in the LRT test
+plotDat <- vst(dds)[sigGenes3,] %>% 
+  assay()
+z.mat <- t(scale(t(plotDat), center=TRUE, scale=TRUE))
+# colour palette
+myPalette <- c("yellow", "azure", "red")
+myRamp = colorRamp2(c(-2, 0, 2), myPalette)
+
+Heatmap(z.mat, name = "z-score",
+        col = myRamp,            
+        show_row_name = FALSE,
+        cluster_columns = FALSE)
+```
+
+
+
+
+
