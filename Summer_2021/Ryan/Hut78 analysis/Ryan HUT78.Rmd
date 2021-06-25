@@ -1,5 +1,5 @@
 ---
-title: "Ryan MCF7 data Upload"
+title: "Ryan Hut78 data Upload"
 output: html_document
 author: Ryan Gensler
 ---
@@ -103,7 +103,7 @@ plotPCA (rld,intgroup=c("status"))
 ```
 
 ```{r}
-#Data analysis comparing MCF7 control and resistant
+#Data analysis comparing HUT78 control and resistant
 comparisonres <- results(dds, contrast=c("status","HUT78_Control","HUT78_Dp"))
 summary(comparisonres)
 write.csv(as.data.frame(comparisonres), file="Hut78_C_Dp.csv")
