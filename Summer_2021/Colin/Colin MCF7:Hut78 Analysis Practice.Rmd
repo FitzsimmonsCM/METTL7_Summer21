@@ -97,8 +97,26 @@ res2MCF7 <- as.data.frame(resMCF7) #changing resMCF7 from S4 to a data frame
 
 ```{r}
 #volcano plot of some of MCF7 res vs control
-ggplot(data=res2MCF7, aes(x=log2FoldChange, y=-log10(padj))) + geom_point(aes(color=padj < 0.05)) + ggtitle("MCF7_M300 vs MCF7 Control") +xlab("log2 Fold Change") + ylab("-log10 padj")
+ggplot(data=res2MCF7, aes(x=log2FoldChange, y=-log10(padj))) + geom_point(aes(color=padj < 0.05)) + ggtitle("MCF7 M300 vs MCF7 Control") +xlab("log2 Fold Change") + ylab("-log10 padj")
 
+```
+
+```{r}
+#analyzing results and comparing different samples
+resHut78 = results(dds, contrast=c("status","HuT_DpVp","HuT_Control")) # comparing HuT78 resistant to control
+summary(resHut78) #summarizes results of the comparison of Hut78 resistant vs control
+
+resHut78_noNA <- na.omit(resHut78) #takes out cells of dataset with no counts, marked NA
+resHut78_sig <- resHut78_noNA [resHut78_noNA$padj<=0.05,] #filters out any counts with padj value > 0.05
+summary(resHut78_sig) #summarizes the significant results for you to view
+dim(resHut78_sig) #retrieves the dimensions of the dataset
+head(resHut78_sig) #shows the first few rows of the significant dataset
+res2Hut78 <- as.data.frame(resHut78) #changing resHut78 from S4 to a data frame
+```
+
+```{r}
+#volcano plot of some of Hut78_DpVp resistant vs control
+ggplot(data=res2Hut78, aes(x=log2FoldChange, y=-log10(padj))) + geom_point(aes(color=padj < 0.05)) + ggtitle("Hut78 DpVp vs Hut78 Control") +xlab("log2 Fold Change") + ylab("-log10 padj")
 ```
 
 
