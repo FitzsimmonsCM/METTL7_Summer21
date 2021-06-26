@@ -119,6 +119,18 @@ res2Hut78 <- as.data.frame(resHut78) #changing resHut78 from S4 to a data frame
 ggplot(data=res2Hut78, aes(x=log2FoldChange, y=-log10(padj))) + geom_point(aes(color=padj < 0.05)) + ggtitle("Hut78 DpVp vs Hut78 Control") +xlab("log2 Fold Change") + ylab("-log10 padj")
 ```
 
+```{r}
+TopGenes <- as.data.frame(resHut78_sig) %>% 
+  rownames_to_column("GeneID") %>% 
+  top_n(150, wt=-padj) %>% 
+  pull("GeneID")
+
+plotDat <- vst(dds)[TopGenes,] %>% 
+  assay()
+z_mat <- t(scale(t(plotDat), center=TRUE, scale=TRUE))
+TopGenes
+```
+
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
 
