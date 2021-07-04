@@ -1,0 +1,225 @@
+---
+title: "Upset plot and heatmap example for RNAseq data"
+output: html_notebook
+author: 'Christina Fitzsimmons'
+date: 'Last updated 2021-07-04'
+---
+# Introduction
+This notebook shows an example of and upset plot and a heatmap--two common types of plots that show the similarities and differences between large data sets. The example below is from a different project of mine, but the concept of converting RNAseq data into plots is similar. 
+
+```{r Libraries}
+library(DESeq2)
+library(biomaRt)
+library(tidyverse)
+library(pheatmap)
+library(ComplexHeatmap)
+library(circlize)
+library(RColorBrewer)
+library(gplots)
+library(EnhancedVolcano)
+library(UpSetR)
+library(plyr)
+library(reshape2)
+library(dplyr)
+library(plotly)
+```
+# 1. Generating the upset plot
+# 1.1 Normoxia Data Only
+Checking to determine if we get same number of genes in upset plot when only normoxia data is loaded as compared to all 18 data sets. Might be different!
+
+```{r Generating the Upset Plot}
+# take a dataframe from the DEseq2 output
+# Filter dataframes for padj only (res_sig)
+# select the geneID column 
+# make a new variable, set. All geneIDs on this list get a value of 1 (binary 1/0 needed for upset plot)
+MutvPar_padjF <- as.data.frame(res_MutvParent_sig) %>%
+  rownames_to_column(var = "geneID")%>% 
+  dplyr::select(geneID) %>%
+  dplyr::mutate(set="MutvPar", val=1)
+
+WTvPar_padjF <- as.data.frame(res_WTvParent_sig) %>%
+  rownames_to_column(var = "geneID") %>%
+  dplyr::select(geneID) %>%
+  dplyr::mutate(set="WTvPar", val=1)
+
+MutvWT_padj <- as.data.frame(res_MutvWT_sig) %>%
+  rownames_to_column(var = "geneID") %>%
+  dplyr::select(geneID) %>%
+  dplyr::mutate(set="MutvWT", val=1)
+
+padj_long <- bind_rows(MutvPar_padjF, WTvPar_padjF, MutvWT_padj) #generate 1 large dataframe with values from all 3 comparisons
+
+# Making the Upset Plot
+# transition the dataframe to a wide format
+test1<-acast(padj_long,geneID~set,value.var="val",fill=0)
+
+# force as dataframe
+test1<-as.data.frame(test1)
+
+# 1st column must be a name
+test1$name=rownames(test1)
+
+test2 <- test1 %>%
+  dplyr::select(name, MutvPar, WTvPar, MutvWT)
+
+# Generate the upset plot and print out to pdf. 
+upset(test2,nsets = 3, nintersects = NA, order.by = "freq")
+pdf('2021.01.24_UpsetPlot_Normoxia-only.pdf') # name of pdf to save
+upset(test2,nsets = 6, nintersects = NA, order.by = "freq")
+dev.off()
+
+# exclude or comment out lines 67 and 69 if you don't wish to save a pdf of the plot. 
+
+```
+## 1.2 Extracting a list of genes to make a heatmap. 
+```{r Generating the filtered lists for the heatmap}
+
+# Doing this the slower way with dplyr anti-joins. 
+WTunique<- anti_join(WTvPar_padjF, MutvWT_padj, by=c("geneID")) # Keep genes only upregulated in WT vs Parent, not Mut vs WT (controls for cancer genes)
+WTunique2 <- anti_join(WTunique, MutvPar_padjF, by = c("geneID")) %>% dplyr::select(geneID) # Keep those genes only upregulated in WT, not Mut vs Parent (controls for lentiviral expression)
+
+head(WTunique2)
+
+WTvPar_df <- as.data.frame(res_WTvParent_sig) %>% rownames_to_column(var = "geneID") %>% dplyr::select(geneID, log2FoldChange, padj)
+MutvPar_df <- as.data.frame(res_MutvParent) %>% rownames_to_column(var = "geneID") %>% dplyr::select(geneID, log2FoldChange, padj)
+MutvWT_df <- as.data.frame(res_MutvWT) %>% rownames_to_column(var = "geneID") %>% dplyr::select(geneID, log2FoldChange, padj)
+
+# make a dataframe of the genes unique to WT vs Parent
+WTvPar_717 <- dplyr::semi_join(WTvPar_df, WTunique2) %>%
+  dplyr::rename(WTvPar_padj=padj, WTvPar_l2fc=log2FoldChange)
+
+MutvPar_717 <- dplyr::semi_join(MutvPar_df, WTunique2) %>%
+  dplyr::rename(MutvPar_padj=padj, MutvPar_l2fc=log2FoldChange)
+
+MutvWT_717 <- dplyr::semi_join(MutvWT_df, WTunique2) %>% 
+  dplyr::rename(MutvWT_padj=padj, MutvWT_l2fc=log2FoldChange)
+
+# print that dataframe of WT vs Par
+d1 <- merge(WTvPar_717, MutvWT_717)
+d2 <- merge(d1, MutvPar_717)
+#write.csv(d2, "./2021.01.25_UpsetPlot_717genes-unique-to_WTvPar_padj-l2fc.csv")
+
+# Many of the genes here have a padj of 0.99 or very close to one
+# practically either this means that they are not worth comparing--because they are the same
+# OR, an alternative explanation, that we have low number of counts. 
+
+# semi_join to create the heatmap list and then write out
+df3 <- semi_join(MutvWT_padj, WTvPar_padjF, by = "geneID")
+heatmap_gene2 <- anti_join(df3, MutvPar_padjF, by= "geneID") 
+#write.csv(heatmap_gene2, "2021.01_upsetR_heatmapgenes_1048.csv")
+
+```
+# 2 Heatmap of Normoxia 262
+Now going to try making the heatmap with the above list. Might need to make a cutoff, we'll see if 1048 is too many genes to plot...
+## 2.1 Heatmap of upset plot genes
+```{r Heatmap plotting}
+
+# This is a useful reference!
+# https://jokergoo.github.io/ComplexHeatmap-reference/book/upset-plot.html#upset-plots-as-heatmaps
+
+# get the genes
+sigGenes <- heatmap_gene2 %>% 
+  pull("geneID")
+
+
+# filter the data for the genes on our list on line 121
+plotDat <- vst(dds)[sigGenes,] %>% 
+  assay()
+z.mat <- t(scale(t(plotDat), center=TRUE, scale=TRUE))
+myPalette <- c("#d7191c", "#ffffbf", "#2c7bb6") #defines colors used for plotting
+myRamp = colorRamp2(c(-2, 0, 2), myPalette) # use my colors and plot based on z-score
+
+Heatmap(z.mat, name = "z-score",
+        col = myRamp,            
+        show_row_name = FALSE,
+        cluster_columns = TRUE)
+
+# write out a pdf of the heatmap
+#pdf('2021.01.24_Heatmap_Normoxia-only_Par-Mut_WT-1048genes.pdf')
+#Heatmap(z.mat, name = "z-score",
+#        col = myRamp,            
+#        show_row_name = FALSE,
+#        cluster_columns = TRUE)
+#dev.off()
+```
+## 2.2 Heatmap of ONLY Mut vs WT genes
+```{r Heatmap of Mut v WT only}
+
+# get the genes from MutvWT with padj < 0.05
+# Based on the upset plot, this should be 1284
+sigGenes2 <- MutvWT_padj %>% 
+  pull("geneID")
+
+
+# filter the data for the top 200 by padj in the LRT test
+plotDat <- vst(dds)[sigGenes2,] %>% 
+  assay()
+z.mat <- t(scale(t(plotDat), center=TRUE, scale=TRUE))
+# colour palette
+myPalette <- c("red3", "ivory", "blue")
+myRamp = colorRamp2(c(-2, 0, 2), myPalette)
+
+Heatmap(z.mat, name = "z-score",
+        col = myRamp,            
+        show_row_name = FALSE,
+        cluster_columns = TRUE)
+
+# write out a pdf of the heatmap
+#pdf('2021.01.25_Heatmap_Normoxia-only_MutvWT_padj05_1284genes.pdf')
+#Heatmap(z.mat, name = "z-score",
+#        col = myRamp,            
+#        show_row_name = FALSE,
+#        cluster_columns = TRUE)
+#dev.off()
+
+# brewer.pal(n=3, name = 'RdYlBu')
+
+```
+# 3. Volcano Plot
+Generating volcano plots of the MutvWT and MutvPar for our supplemental data. 
+```{r Volcano Plot}
+
+volcano <- as.data.frame(res_noNA_MutvWT) %>%
+  rownames_to_column(var="geneID") %>%
+  dplyr::mutate(logP = -1*log10(padj)) 
+
+test_volcano <- ggplot(volcano, aes(x=log2FoldChange, y=logP)) +
+  geom_point()+
+  theme_bw() +
+  xlim(-5,5) + # set x-limits on plot so both appear on the same scale (no genes cut off here)
+  geom_vline(xintercept = -1, linetype="dashed") + geom_vline(xintercept = 1, linetype = "dashed") + # vertical dashed lines at significant log2foldchange
+  geom_hline(yintercept = 1.30, linetype = "dashed") + # horizontal dashed line at significant -10log(padj) values
+  labs(x = "Log2FoldChange (Mut/WT)", y = "-Log10(padj)", title = "Volcano plot of UOK262 Normoxia RNAseq") 
+
+test_volcano # plots the volcano object. 
+
+#pdf('2021.01.25_VolcanoPlot_MutvWT_Normoxia_RNAseq.pdf')
+#test_volcano
+#dev.off()
+
+
+my_fav_gene <- as.data.frame(res_MutvParent) %>%
+  rownames_to_column(var="geneID") %>%
+  dplyr::filter(geneID == "ENSG00000091483.6") %>%
+  dplyr::mutate(padj = 5.61E-301) %>%
+  dplyr::mutate (logP = -1*log10(padj))
+
+volcano2 <- as.data.frame(res_noNA_MutvParent) %>%
+  rownames_to_column(var="geneID") %>%
+  dplyr::mutate(logP = -1*log10(padj)) 
+
+test_volcano2 <- ggplot(volcano2, aes(x=log2FoldChange, y=logP, label=geneID)) +
+  geom_point()+
+  geom_point(data=my_fav_gene, color="red") + #specifically adding FH to the plot manually. Shows that this gene is really only one sig. upregulated. 
+  theme_bw() +
+  xlim(-5,5) +
+  geom_vline(xintercept = -1, linetype="dashed") + geom_vline(xintercept = 1, linetype = "dashed") +
+  geom_hline(yintercept = 1.30, linetype = "dashed") +
+  labs(x = "Log2FoldChange (Mut/Par)", y = "-Log10(padj)", title = "Volcano plot of UOK262 Normoxia RNAseq") 
+
+test_volcano2
+
+# print the volcano object to a pdf. 
+pdf('2021.01.31_VolcanoPlot_MutvPar_Normoxia_RNAseq.pdf')
+test_volcano2
+dev.off()
