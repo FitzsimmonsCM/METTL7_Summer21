@@ -1,8 +1,8 @@
-# METTL7
+# METTL7_Summer21
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
-This repository holds data analysis and scripts for the METTL7 project
+This repository holds data analysis and scripts for the METTL7 Summer 2021 project by virtual summer students.
 
 ## Contributors ✨
 
