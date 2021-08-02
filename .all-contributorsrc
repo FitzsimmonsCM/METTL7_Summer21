@@ -16,10 +16,19 @@
         "ideas",
         "question"
       ]
+    },
+    {
+      "login": "fisch899",
+      "name": "Colin Fischer",
+      "avatar_url": "https://avatars.githubusercontent.com/u/85513174?v=4",
+      "profile": "https://github.com/fisch899",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
-  "projectName": "METTL7",
+  "projectName": "METTL7_Summer21",
   "projectOwner": "FitzsimmonsCM",
   "repoType": "github",
   "repoHost": "https://github.com",
