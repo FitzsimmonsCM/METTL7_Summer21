@@ -1,0 +1,260 @@
+---
+title: "Bergel Data Analysis 08.17.2021 CSF"
+author: Colin Fischer
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+#import libraries needed
+#ComplexHeatmap library doesn't work, why?
+library(rmdformats) 
+library(DESeq2) 
+library(tidyverse) 
+library(pheatmap) 
+library(RColorBrewer) 
+library(gplots) 
+library(genefilter) 
+library(biomaRt) 
+library(gprofiler2) 
+library(ggpubr) 
+library(circlize)
+library(readr)
+library(ComplexHeatmap)
+
+#setting working directory to folder with data files
+setwd("~/Desktop/NCI:NIH/METTL7 Summer 2021/Summer_2021/Colin")
+```
+
+
+```{r}
+#importing metadata that will be columns of matrix (treatment names)
+coldata <- read.csv("~/Desktop/NCI:NIH/METTL7 Summer 2021/Tutorials/RNAseq_analysis_bergel/Gottesman_Rhomedepsin.csv",
+                    row.names=1)
+
+#view the table and import count data (will be rows of matrix)
+print(coldata)
+nrow(coldata)
+countdata <- read.delim(
+  "~/Desktop/NCI:NIH/METTL7 Summer 2021/Tutorials/RNAseq_analysis_bergel/RawCountFile_rsemgenes.txt", row.names = 1)
+```
+
+```{r}
+
+#creating matrix with count data and converting counts to integer values instead of decimals
+countdata <- as.matrix(countdata)
+storage.mode(countdata) <- "integer"
+
+#checking to make sure that all the treatment names from coldata are now the columns of count data matrix and that each one was included?
+all(rownames(coldata) %in% colnames(countdata))
+all(rownames(coldata) == colnames(countdata))
+```
+
+```{r}
+#creating DESeq dds object from treatments and count data
+dds <- DESeqDataSetFromMatrix(countData = countdata,
+                              colData = coldata,
+                              design = ~ Treatment)
+dds
+```
+
+```{r}
+
+#touching up dds object by filtering out any rows with count sums less than 10
+nrow(dds)
+dds <- dds[rowSums(counts(dds)) >10,]
+nrow(dds)
+
+counts(dds)
+rowSums(counts(dds))
+```
+```{r}
+#rlog plot that converts counts to a log form that helps minimize the differences between small counts and better visualize them
+rld <- rlog(dds, blind = FALSE)
+head(assay(rld), 3)
+
+#vst plot that assures that the variance of counts isn't affected by the mean of the counts. (Is that correct? I'm still not fully understanding this one)
+vsd <- vst(dds, blind = FALSE)
+head(assay(vsd), 3)
+
+#below code makes a data frame from each of these objects (why is creating a df necessary? Why not just plot each with ggplot individually?)
+df <- bind_rows(
+  
+  as_data_frame(assay(vsd)[, 1:2]) %>% mutate(transformation = "vst"),
+  as_data_frame(assay(rld)[, 1:2]) %>% mutate(transformation = "rlog"))
+  
+#now make the axes and their ratios for the plots
+colnames(df)[1:2] <- c("x", "y")  
+
+#now plot using the data frame containing both the rlog and vst plots with binsize of 80 in a grid. Not fully understanding the second line of code here
+ggplot(df, aes(x = x, y = y)) + geom_hex(bins = 80) +
+  coord_fixed() + facet_grid( . ~ transformation)
+vsd <- vst(dds)
+```
+
+```{r}
+#perform DESeq on dds object
+dds <-DESeq(dds)
+
+#below code used to compare NR_D9 to R_D9
+#can copy and change treatments and object names for other treatments
+
+resNRR <- results(dds, contrast = c("Treatment", "control", "NoRes_D9treat")) 
+resNRR
+
+resOrdered <- resNRR[order(resNRR$padj),] #orders counts by padj
+resOrderedDF <- as.data.frame(resOrdered) #makes a df from ordered counts
+
+resOrderedDF_v2 <- resOrderedDF %>%
+  rownames_to_column('ENSG_ID') #makes an actual col for gene IDs
+
+#now call on human gene database and convert ENSG IDs to gene names
+resOrdered_name <- gconvert(resOrderedDF_v2$ENSG_ID, organism = "hsapiens", target = "HGNC", filter_na = F) %>%
+  dplyr::select(input, name) %>%
+  dplyr::rename(ENSG_ID = input, gene_name = name)
+
+res_export <- inner_join(resOrdered_name, resOrderedDF_v2, by = "ENSG_ID")
+
+write.csv(res_export, file="~/Desktop/NCI:NIH/METTL7 Summer 2021/Tutorials/RNAseq_analysis_bergel/Bergel_RNASeq_NoResD9Treatment_to_Control.csv")
+
+res_noNA <- na.omit(resOrdered_name) #omit genes with missing values (i.e. zero counts)
+res_sig <- res_noNA [res_noNA$padj<=0.05,] #creates new df with only significant counts
+
+summary(res_sig) 
+dim(res_sig)
+head(res_sig)
+res2NRR <- as.data.frame(resNRR) #why did we make this new obj instead of using res_sig? What am I missing here? I feel like the data I'm actually plotting may be incomplete
+```
+```{r}
+#attempting new volcano plot formation method (using res2NRR as ex)
+
+#first section here creates volcano plot object that combines values that abide by our parameters for log2 fold change AND padj, and then use dplyr to order them by importance (what else is dplyr doing here?)
+new_volc <- res2NRR %>% 
+  arrange() %>%
+  mutate(direction = case_when(
+    res2NRR$log2FoldChange >= 1.5 & -1*log10(res2NRR$padj) < 0.05 ~ "sig_l2fc >= 1.5",
+    res2NRR$log2FoldChange <= -1.5 & -1*log10(res2NRR$padj) < 0.05 ~ "sig_l2fc <= -1.5",
+    TRUE ~ "nonsig_change")) %>%
+  dplyr::mutate(direction = factor(direction, levels = c("nonsig_change", "sig_l2fc <= -1.5", "sig_l2fc >= 1.5")))
+
+#this object accesses the one we just made and filters for data that abides by l2fc that is significant and >= 1.5 (because this is the most important)
+#why not use this for volc plot?
+new_volc_stats <- new_volc %>%
+  dplyr::filter(direction == "sig_l2fc >= 1.5")
+
+new_volc_plot <- ggplot(new_volc, aes(x = res2NRR$log2FoldChange, y = -1*log10(res2NRR$padj), color = direction)) +
+  geom_point() +
+  theme_bw() +
+  xlim(-10,10) +
+  geom_vline(xintercept = -1.5, linetype = "dashed") + geom_vline(xintercept = 1.5, linetype = "dashed") +
+  scale_color_manual(values=c("dark grey")) +
+  labs(x = "log2FoldChange", y = "-log10(padj)",
+       title = "Diffrential Expression in Non-Resistant D9 Control vs Resistant D9 Treated Cells")
+new_volc_plot
+    
+```
+
+
+```{r}
+ggplot(data=res2NRR, aes(x=log2FoldChange, y=-log10(padj))) + geom_point(aes(color=padj < 0.05)) + ggtitle("Gene Expression in Non-Resistant D9 Control vs Resistant D9 Treated Cells") +xlab("log2 Fold Change") + ylab("-log10 padj")
+```
+
+```{r}
+#comparing R_V_D9 to D9
+
+resRVD9 <- results(dds, contrast = c("Treatment", "D9_vehicle", "D9res_D9treat")) 
+resRVD9
+
+resOrdered <- resRVD9[order(resRVD9$padj),]
+resOrderedDF <- as.data.frame(resOrdered)
+
+resOrderedDF_v2 <- resOrderedDF %>%
+  rownames_to_column('ENSG_ID')
+
+resOrdered_name <- gconvert(resOrderedDF_v2$ENSG_ID, organism = "hsapiens", target = "HGNC", filter_na = F) %>%
+  dplyr::select(input, name) %>%
+  dplyr::rename(ENSG_ID = input, gene_name = name)
+
+res_noNA <- na.omit(resOrdered_name)
+res_sig <- res_noNA [res_noNA$padj<=0.05,]
+
+summary(res_sig) 
+dim(res_sig)
+head(res_sig)
+res2RVD9 <- as.data.frame(resRVD9)
+```
+
+```{r}
+ggplot(data=res2RVD9, aes(x=log2FoldChange, y=-log10(padj))) + geom_point(aes(color=padj < 0.05)) + ggtitle("Gene Expression in D9 Vehicle vs Resistant D9 Treated Cells") +xlab("log2 Fold Change") + ylab("-log10 padj")
+```
+
+```{r}
+#comparing D9_vehicle to NonRes_D5_Treatment
+
+resD9VD5 <- results(dds, contrast = c("Treatment", "D9_vehicle", "NoRes_D5treat")) 
+resD9VD5
+
+resOrdered <- resD9VD5[order(resD9VD5$padj),]
+resOrderedDF <- as.data.frame(resOrdered)
+
+resOrderedDF_v2 <- resOrderedDF %>%
+  rownames_to_column('ENSG_ID')
+
+resOrdered_name <- gconvert(resOrderedDF_v2$ENSG_ID, organism = "hsapiens", target = "HGNC", filter_na = F) %>%
+  dplyr::select(input, name) %>%
+  dplyr::rename(ENSG_ID = input, gene_name = name)
+
+res_noNA <- na.omit(resOrdered_name)
+res_sig <- res_noNA[res_noNA$padj<=0.05,]
+
+summary(res_sig) 
+dim(res_sig)
+head(res_sig)
+res2D9VD5 <- as.data.frame(resD9VD5)
+```
+
+
+```{r}
+ggplot(data=res2D9VD5, aes(x=log2FoldChange, y=-log10(padj))) + geom_point(aes(color=padj < 0.05)) + ggtitle("Gene Expression in D9 Vehicle vs Non-Resistant D5 Treated Cells") +xlab("log2 Fold Change") + ylab("-log10 padj")
+```
+
+```{r}
+#creates object that reorders the counts in the rlog data by the highest variance (highest to lowest, top 100 varying genes)
+topVarGenes <- head(order(rowVars(assay(rld)), decreasing=TRUE), 100)
+
+#plotting a heatmap of the top 100 varying genes
+heatmap.2(assay(rld)[topVarGenes, ], 
+          scale="row",
+          trace="none",
+          dendrogram="column",
+          labRow = FALSE,
+          main="Heatmap of Highest Gene Variance",
+          cexCol = 0.2 + 1/log10(50),
+          col = "bluered")
+```
+```{r}
+#attempting new method of heatmap creation
+topVarGenes <- head(order(rowVars(assay(rld)), decreasing=TRUE), 100)
+
+plotdata <- vst(dds)[topVarGenes,] %>%
+  assay()
+
+z.mat <- t(scale(t(plotdata), center = TRUE, scale = TRUE))
+color <- c("#d7191c", "#ffffbf", "#2c7bb6")
+ramp <- colorRamp2(c(-2,0,2), color)
+
+heatmap(z.mat, name = "z-score",
+        col = ramp,
+        show_row_name = FALSE,
+        cluster_columns = TRUE)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+

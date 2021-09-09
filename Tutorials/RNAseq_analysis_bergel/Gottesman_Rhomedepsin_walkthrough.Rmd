@@ -1,4 +1,4 @@
----
+((---
 title: "Gottesman Bergel RNA-seq Data"
 output: rmdformats::readthedown
 author: Christina Fitzsimmons
@@ -190,4 +190,5 @@ res_export <- inner_join(resOrdered_name, resOrderedDF_v2, by = "ENSG_ID")
 # Export the dataframe to a csv file for downstream analysis
 write.csv(res_export, file="/Users/fitzsimmonscm/Documents/Projects_and_Data/Collaborations/Gottesman/RNASeq_Bergel/2019.03.16_Rhomedepsin_RNASeq_D9res_D9treatvscontrol.csv")
 ```
+
 
