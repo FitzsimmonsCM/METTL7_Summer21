@@ -10,7 +10,6 @@ date: 'Last updated 2021-06-20'
 library(DESeq2)
 library(biomaRt)
 library(tidyverse)
-library(ComplexHeatmap)
 library(circlize)
 library("RColorBrewer")
 library("gplots")
@@ -167,7 +166,7 @@ identify(res$baseMean, res$log2FoldChange, labels = row.names(res))
 ```{r}
 # Volcano plot 2
 
-shrinkLvV <- res_final %>% 
+shrinkLvV <- res_final2 %>% 
   mutate(TopGeneLabel=ifelse(pvalue<=0.05, external_gene_name, ""))
 
 filtTab <- shrinkLvV %>% 

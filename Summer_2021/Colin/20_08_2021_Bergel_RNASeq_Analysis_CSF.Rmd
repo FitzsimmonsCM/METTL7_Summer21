@@ -179,7 +179,7 @@ resOrdered_name <- gconvert(resOrderedDF_v2$ENSG_ID, organism = "hsapiens", targ
   dplyr::rename(ENSG_ID = input, gene_name = name)
 
 res_noNA <- na.omit(resOrdered_name)
-res_sig <- res_noNA [res_noNA$padj<=0.05,]
+res_sig <- res_noNA[res_noNA$padj<=0.05,]
 
 summary(res_sig) 
 dim(res_sig)
@@ -238,6 +238,7 @@ heatmap.2(assay(rld)[topVarGenes, ],
 ```{r}
 #attempting new method of heatmap creation
 topVarGenes <- head(order(rowVars(assay(rld)), decreasing=TRUE), 100)
+topVarGenes
 
 plotdata <- vst(dds)[topVarGenes,] %>%
   assay()
@@ -246,10 +247,58 @@ z.mat <- t(scale(t(plotdata), center = TRUE, scale = TRUE))
 color <- c("#d7191c", "#ffffbf", "#2c7bb6")
 ramp <- colorRamp2(c(-2,0,2), color)
 
-heatmap(z.mat, name = "z-score",
+Heatmap(z.mat, name = "z-score",
         col = ramp,
         show_row_name = FALSE,
         cluster_columns = TRUE)
+```
+
+```{r}
+TopL2FCGenes <- as.data.frame(plotdata) %>% 
+  rownames_to_column("GeneID") %>% 
+  top_n(100) %>% 
+  pull("GeneID")
+
+plotData <- vst(dds)[TopL2FCGenes,] %>% 
+  assay()
+z_mat <- t(scale(t(plotData), center=TRUE, scale=TRUE))
+z_mat
+```
+```{r}
+library(biomaRt)
+library(stringi)
+listMarts()
+ensembl=useMart("ENSEMBL_MART_ENSEMBL")
+
+ensembl = useDataset("hsapiens_gene_ensembl", mart=ensembl)
+
+filterType <- "ensembl_gene_id" 
+
+filterValues <- rownames(TopL2FCGenes)
+
+gene_IDs <- str_replace(filterValues,
+                        pattern = ".[0-9]+$",
+                        replacement = "")
+
+attributeNames_2 <- c('ensembl_gene_id_version', 'external_gene_name', 'gene_biotype', 'ensembl_gene_id')
+
+annot_2 <- getBM(attributes=attributeNames_2, 
+                 filters = filterType, 
+                 values = filterValues, 
+                 mart = ensembl)
+
+annotLvV_2 <- as.data.frame(TopL2FCGenes%>% 
+  rownames_to_column("ensembl_gene_id_version"))
+
+fV_2 <- rownames(TopL2FCGenes)
+
+ensembl_gene_id_2 <- str_replace(fV_2,
+                               pattern = ".[0-9]+$",
+                               replacement = "")
+
+annotLvV_2 [, "ensembl_gene_id"] <- ensembl_gene_id_2
+
+res_final2 <- merge (annotLvV_2, annot_2, by="ensembl_gene_id")
 ```
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
