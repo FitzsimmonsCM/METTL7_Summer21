@@ -16,10 +16,38 @@
         "ideas",
         "question"
       ]
+    },
+    {
+      "login": "fisch899",
+      "name": "Colin Fischer",
+      "avatar_url": "https://avatars.githubusercontent.com/u/85513174?v=4",
+      "profile": "https://github.com/fisch899",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "rgensler-coder",
+      "name": "Ryan Gensler",
+      "avatar_url": "https://avatars.githubusercontent.com/u/85248588?v=4",
+      "profile": "https://github.com/rgensler-coder",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "robertwrobey",
+      "name": "robertwrobey",
+      "avatar_url": "https://avatars.githubusercontent.com/u/85580254?v=4",
+      "profile": "https://github.com/robertwrobey",
+      "contributions": [
+        "ideas",
+        "question"
+      ]
     }
   ],
   "contributorsPerLine": 7,
-  "projectName": "METTL7",
+  "projectName": "METTL7_Summer21",
   "projectOwner": "FitzsimmonsCM",
   "repoType": "github",
   "repoHost": "https://github.com",
