@@ -10,6 +10,7 @@ This notebook is an analysis of the data from the M. Gottesman Lab from the Berg
 
 ```{r}
 # Import the libraries we will need for this analysis
+library(readxl)
 library (rmdformats) #library for nice html output of notebooks
 library(DESeq2) # library with tools / objects for differential expression analysis
 library(tidyverse) # library for data science operations
@@ -36,12 +37,12 @@ In this section of the notebook, we will import the raw count data, the metadata
 
 # Importing the metadata for our analysis
 # The metadata contains information about the samples (cell type, drug resistance, etc) that we will use in our analyses
-coldata <- read.csv("/Users/fitzsimmonscm/Documents/Projects_and_Data/Collaborations/Gottesman/RNASeq_Bergel/Gottesman_Rhomedepsin.csv",
-                    row.names=1)
+coldata <- read.delim(file = "/Users/fitzsimmonscm/Documents/Projects_and_Data/Collaborations/Gottesman/RNASeq_Bergel/Gottesman_Rhomedepsin.txt",
+                      header=TRUE, sep = "\t", row.names = 1)
+
 print(coldata)
 nrow(coldata)
-countdata1 <- read.delim(
-  "/Users/fitzsimmonscm/Documents/Projects_and_Data/Collaborations/Gottesman/RNASeq_Bergel/RawCountFile_rsemgenes.txt", row.names = 1)
+countdata1 <- read.delim(file = "/Users/fitzsimmonscm/Documents/Projects_and_Data/Collaborations/Gottesman/RNASeq_Bergel/RawCountFile_rsemgenes.txt", row.names = 1, sep="\t")
 
 # This converts the raw data into a matrix object and then performs a cast to integer. 
 # This would be better fixed at the gene counting level in RNAseq, using a counting program that does not report fractional values
@@ -155,7 +156,7 @@ This heatmap shows the top 100 genes with the highest variance across the sample
 # This is to plot a heat map with gene clustering
 # plot is centered and scaled across all samples
 
-topVarGenes <- head( order( rowVars( assay(rld) ), decreasing=TRUE ), 100 )
+topVarGenes <- head( order( rowVars( assay(rld) ), decreasing=TRUE ), 250 )
 
 heatmap.2(assay(rld)[ topVarGenes, ], 
           scale="row",
@@ -188,6 +189,93 @@ resOrdered_name <- gconvert(resOrderedDF_v2$ENSG_ID, organism = "hsapiens", targ
 res_export <- inner_join(resOrdered_name, resOrderedDF_v2, by = "ENSG_ID")
 
 # Export the dataframe to a csv file for downstream analysis
-write.csv(res_export, file="/Users/fitzsimmonscm/Documents/Projects_and_Data/Collaborations/Gottesman/RNASeq_Bergel/2019.03.16_Rhomedepsin_RNASeq_D9res_D9treatvscontrol.csv")
+write.csv(res_export, file="/Users/fitzsimmonscm/Documents/Projects_and_Data/Collaborations/Gottesman/RNASeq_Bergel/2019.03.16_Rhomedepsin_RNASeq_R_V_D9vs_NR_V.csv")
 ```
+# Comparing R_D9 and NR_D9
+```{r}
+
+# Here, we are asking to compare 2 treatments, D9res_D9treat and NoRes_D9_treat
+res2 <- results( dds, contrast = c("Treatment", "D9res_D9Treat", "NoRes_D9_treat") ) 
+res2
+
+# This section will allow us to sort and export the data as a table
+resOrdered2 <- res2[order(res2$padj),]
+resOrderedDF_2 <- as.data.frame(resOrdered2)
+
+
+# Now we're going to use the gprofiler library to assign gene names to the data. Right now, all we have is the big long ENSG ID number
+resOrderedDF_v22 <- resOrderedDF_2 %>%
+  rownames_to_column('ENSG_ID')
+
+# Get the names from a gProfiler query
+resOrdered_name2 <- gconvert(resOrderedDF_v22$ENSG_ID, organism = "hsapiens", target = "HGNC", filter_na = F) %>%
+  dplyr::select(input, name) %>%
+  dplyr::rename(ENSG_ID = input, gene_name = name) # change input to ENSG_ID
+
+# Join names dataframe to resOrdered df by the common column of ENSG_ID
+res_export2 <- inner_join(resOrdered_name2, resOrderedDF_v22, by = "ENSG_ID")
+
+# Export the dataframe to a csv file for downstream analysis
+write.csv(res_export2, 
+          file="/Users/fitzsimmonscm/Documents/Projects_and_Data/Collaborations/Gottesman/RNASeq_Bergel/2019.03.16_Rhomedepsin_RNASeq_R_D9_vs_NR_D9.csv")
+
+
+
+
+```
+
+```{r}
+# Here, we are asking to compare 2 treatments
+res3 <- results( dds, contrast = c("Treatment", "NoRes_D9_treat", "control") ) 
+res3
+
+# This section will allow us to sort and export the data as a table
+resOrdered3 <- res3[order(res3$padj),]
+resOrderedDF_3 <- as.data.frame(resOrdered3)
+
+
+# Now we're going to use the gprofiler library to assign gene names to the data. Right now, all we have is the big long ENSG ID number
+resOrderedDF_v33 <- resOrderedDF_3 %>%
+  rownames_to_column('ENSG_ID')
+
+# Get the names from a gProfiler query
+resOrdered_name3 <- gconvert(resOrderedDF_v33$ENSG_ID, organism = "hsapiens", target = "HGNC", filter_na = F) %>%
+  dplyr::select(input, name) %>%
+  dplyr::rename(ENSG_ID = input, gene_name = name) # change input to ENSG_ID
+
+# Join names dataframe to resOrdered df by the common column of ENSG_ID
+res_export3 <- inner_join(resOrdered_name3, resOrderedDF_v33, by = "ENSG_ID")
+
+# Export the dataframe to a csv file for downstream analysis
+write.csv(res_export3, 
+          file="/Users/fitzsimmonscm/Documents/Projects_and_Data/Collaborations/Gottesman/RNASeq_Bergel/2019.03.16_Rhomedepsin_RNASeq_NR_D9_vs_NR_V_D9.csv")
+```
+```{r}
+# Here, we are asking to compare 2 treatments
+res4 <- results( dds, contrast = c("Treatment", "D9res_D9Treat", "D9_vehicle") ) 
+res4
+
+# This section will allow us to sort and export the data as a table
+resOrdered4 <- res4[order(res4$padj),]
+resOrderedDF_4 <- as.data.frame(resOrdered4)
+
+
+# Now we're going to use the gprofiler library to assign gene names to the data. Right now, all we have is the big long ENSG ID number
+resOrderedDF_v44 <- resOrderedDF_4 %>%
+  rownames_to_column('ENSG_ID')
+
+# Get the names from a gProfiler query
+resOrdered_name4 <- gconvert(resOrderedDF_v44$ENSG_ID, organism = "hsapiens", target = "HGNC", filter_na = F) %>%
+  dplyr::select(input, name) %>%
+  dplyr::rename(ENSG_ID = input, gene_name = name) # change input to ENSG_ID
+
+# Join names dataframe to resOrdered df by the common column of ENSG_ID
+res_export4 <- inner_join(resOrdered_name4, resOrderedDF_v44, by = "ENSG_ID")
+
+# Export the dataframe to a csv file for downstream analysis
+write.csv(res_export4, 
+          file="/Users/fitzsimmonscm/Documents/Projects_and_Data/Collaborations/Gottesman/RNASeq_Bergel/2019.03.16_Rhomedepsin_RNASeq_R_D9_vs_R_V_D9.csv")
+```
+
+
 
