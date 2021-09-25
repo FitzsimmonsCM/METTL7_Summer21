@@ -1,4 +1,4 @@
----
+((---
 title: "Gottesman Bergel RNA-seq Data"
 output: rmdformats::readthedown
 author: Christina Fitzsimmons
@@ -276,6 +276,7 @@ res_export4 <- inner_join(resOrdered_name4, resOrderedDF_v44, by = "ENSG_ID")
 write.csv(res_export4, 
           file="/Users/fitzsimmonscm/Documents/Projects_and_Data/Collaborations/Gottesman/RNASeq_Bergel/2019.03.16_Rhomedepsin_RNASeq_R_D9_vs_R_V_D9.csv")
 ```
+
 
 
 

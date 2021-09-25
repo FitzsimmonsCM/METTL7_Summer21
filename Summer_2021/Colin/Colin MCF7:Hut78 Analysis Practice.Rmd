@@ -5,26 +5,31 @@ author: Colin Fischer
 acknowledgments: Dr. Christina Fitzsimmons, NIH/NCI
 date created: 6/23/2021
 ---
-# Introduction
-The purpose of this notebook is to analyze RNAseq data that compares drug resistant and naive cell lines in two different cancer types. Our goal is to identify genes that might be changing as a result of treatment with drug, as well as to identify possible mechanisms or pathways that we can test. 
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+
 ```{r}
 #set working directory and create directory object
 setwd("~/Desktop/NCI:NIH/METTL7 Summer 2021/Tutorials/RNAseq_Hut78_M7_MCF7")
 directory = "~/Desktop/NCI:NIH/METTL7 Summer 2021/Tutorials/RNAseq_Hut78_M7_MCF7"
 ```
-# 1. Libraries
+
 ```{r}
 #libraries
 library(DESeq2)
 library(biomaRt)
 library(tidyverse)
-library(ComplexHeatmap)
 library(circlize)
 library("RColorBrewer")
 library("gplots")
+library("gProfileR")
+library("gprofiler2")
 ```
 
-# 2. Import Data
+
 ```{r}
 #Load MCF7 and Hut78 files using the pattern "count"
 sampleFiles <- list.files(pattern = "*.count") #all files with ".count" put in sampleFiles object
@@ -47,7 +52,7 @@ des <- formula(~status)
 #now have all three objects needed for HTSeq import
 ddsHTSeq <- DESeqDataSetFromHTSeqCount(sampleTable = sampleTable, directory = directory, design = des)
 ```
-Creating the DESeq2 data object
+
 ```{r}
 #Filter Counts
 
@@ -63,8 +68,7 @@ head(dds)
 #create the DESeq2 object
 dds <- DESeq(dds)
 ```
-# 3. Plotting various graphs of samples
-## 3.1 Analysis of MCF7 data
+
 ```{r}
 #plotting heatmap to compare different samples
 rld <- rlog(dds)
@@ -91,14 +95,74 @@ head(resMCF7_sig) #shows the first few rows of the significant dataset
 res2MCF7 <- as.data.frame(resMCF7) #changing resMCF7 from S4 to a data frame
 
 ```
-Volcano of MCF7
+
 ```{r}
-#volcano plot of some of MCF7 res vs control
-ggplot(data=res2MCF7, aes(x=log2FoldChange, y=-log10(padj))) + geom_point(aes(color=padj < 0.05)) + ggtitle("MCF7 M300 vs MCF7 Control") +xlab("log2 Fold Change") + ylab("-log10 padj")
+res2_MCF7_sorted <- as.data.frame(res2MCF7)%>% 
+  rownames_to_column("gene_ID")
+view(res2_MCF7)
+```
+```{r}
+#creating a dataframe of only METTL7 to isolate for further use
+df_METTL7 <- subset(res2_MCF7_sorted, res2_MCF7_sorted$gene_ID=="ENSG00000185432.11")
+view(df_METTL7)
+
+#volcano plot highlighting METTL7 based on its unique values
+ggplot(data=res2MCF7, aes(x=log2FoldChange, y=-log10(padj))) + ylim(0, 400) + geom_point(aes(color=padj < 0.05)) + ggtitle("Gene Expression in DpVp300 Resistant vs MCF7 Parental Cell Lines") +xlab("log2 Fold Change") + ylab("-log10 padj") + 
+geom_point(aes(color= res2_MCF7_sorted$gene_ID=="ENSG00000185432.11"|res2_MCF7_sorted$gene_ID=="ENSG00000085563.14"))
+```
+```{r}
+#volcano plot of only METTL7 to confirm proper location
+ggplot(data=df_METTL7, aes(x=log2FoldChange, y=-log10(padj))) + ylim(0, 400) + xlim(-10, 10) + geom_point(aes(color= padj < 0.05)) + geom_point(aes(color=padj < 0.05))+ ggtitle("Gene Expression in DpVp300 Resistant vs MCF7 Parental Cell Lines") +xlab("log2 Fold Change") + ylab("-log10 padj")
+```
+
+```{r}
+#analyzing results and comparing different samples
+resHuT78 = results(dds, contrast=c("status","HuT_DpVp","HuT_Control")) # comparing Hut res to control
+summary(resHuT78) #summarizes results of the comparison of HuT res vs control
+
+resHuT78_noNA <- na.omit(resHuT78) #takes out cells of dataset with no counts, marked NA
+resHuT78_sig <- resHuT78_noNA [resHuT78_noNA$padj<=0.05,] #filters out any counts with padj value > 0.05
+summary(resHuT78_sig) #summarizes the significant results for you to view
+dim(resHuT78_sig) #retrieves the dimensions of the dataset
+head(resHuT78_sig) #shows the first few rows of the significant dataset
+res2HuT78 <- as.data.frame(resHuT78) #changing resHuT78 from S4 to a data frame
+```
+```{r}
+view(res2HuT78)
+nrow(res2Hut78)
 
 ```
-## 3.2 Analysis of Hut78 data
-```{r, hut78}
+
+
+```{r}
+res2HuT78_sorted <- as.data.frame(res2HuT78)%>% 
+  rownames_to_column("gene_ID")
+view(res2HuT78)
+```
+```{r}
+
+#volcano plot of some of HuT res vs control highlighting METTL7
+ggplot(data=res2HuT78, aes(x=log2FoldChange, y=-log10(padj))) + geom_point(aes(color=padj < 0.05)) + ggtitle("Gene Expression in HuT_DpVp300 Resistant vs HuT78 Parental Cell Lines") +xlab("log2 Fold Change") + ylab("-log10 padj") +
+geom_point(aes(color= res2HuT78_sorted$gene_ID=="ENSG00000185432.11"|res2HuT78_sorted$gene_ID=="ENSG00000085563.14"))
+```
+
+
+```{r}
+#volcano plot of some of MCF7 res vs control
+ggplot(data=res2MCF7, aes(x=log2FoldChange, y=-log10(padj))) + geom_point(aes(color=padj < 0.05)) + ggtitle("Gene Expression in DpVp300 Resistant vs MCF7 Naive Cell Lines") +xlab("log2 Fold Change") + ylab("-log10 padj")
+
+```
+
+```{r}
+df_METTL7A <- as.data.frame(res2MCF7 %>% filter(res2MCF7, row.names(ENSG00000185432.11)))
+
+ggplot(data=res2MCF7, aes(x=log2FoldChange, y=-log10(padj))) + geom_point(aes(color=padj < 0.05)) + ggtitle("Gene Expression in DpVp300 Resistant vs MCF7 Naive Cell Lines") +xlab("log2 Fold Change") + ylab("-log10 padj")+
+  geom_point(aes(color=df_METTL7A))
+
+```
+
+
+```{r}
 #analyzing results and comparing different samples
 resHut78 = results(dds, contrast=c("status","HuT_DpVp","HuT_Control")) # comparing HuT78 resistant to control
 summary(resHut78) #summarizes results of the comparison of Hut78 resistant vs control
@@ -110,47 +174,163 @@ dim(resHut78_sig) #retrieves the dimensions of the dataset
 head(resHut78_sig) #shows the first few rows of the significant dataset
 res2Hut78 <- as.data.frame(resHut78) #changing resHut78 from S4 to a data frame
 ```
-Volcano plot of Hut78 cells 
-```{r, Hut78 volcano}
+
+```{r}
 #volcano plot of some of Hut78_DpVp resistant vs control
 ggplot(data=res2Hut78, aes(x=log2FoldChange, y=-log10(padj))) + geom_point(aes(color=padj < 0.05)) + ggtitle("Hut78 DpVp vs Hut78 Control") +xlab("log2 Fold Change") + ylab("-log10 padj")
 ```
 
 ```{r}
-#TopGenes <- as.data.frame(resHut78_sig) %>% 
-#  rownames_to_column("GeneID") %>% 
-#  top_n(150, wt=-padj) %>% 
-#  pull("GeneID")
+TopGenes <- as.data.frame(resHut78_sig) %>% 
+  rownames_to_column("GeneID") %>% 
+  top_n(150, wt=-padj) %>% 
+  pull("GeneID")
 
-#plotDat <- vst(dds)[TopGenes,] %>% 
-#  assay()
-#z_mat <- t(scale(t(plotDat), center=TRUE, scale=TRUE))
-#TopGenes
+plotDat <- vst(dds)[TopGenes,] %>% 
+  assay()
+z_mat <- t(scale(t(plotDat), center=TRUE, scale=TRUE))
+TopGenes
 ```
-# Converting ENSG namespace to HGNC
 
-```{r, gprofiler}
+```{r}
+ #returns a list of bioMart databases that biomaRt can connect to
+listMarts()
+ensembl=useMart("ENSEMBL_MART_ENSEMBL") #connects us to Ensembl biomaRt database
+ensembl = useDataset("hsapiens_gene_ensembl", mart=ensembl) #tells biomaRt to us human gene database
+filterType <- "ensembl_gene_id" #filter samples by ensembl gene id which is what we currently have
+filterValues2 <- rownames(resHut78_sig) #use the significant counts filtered for previously
+
+#next line removes the version so that geneID can be used with different annotation versions
+gene_ids2 <- str_replace(filterValues2,
+                        pattern = ".[0-9]+$",
+                        replacement = "")
+
+attributeNames_2 <- c('ensembl_gene_id_version', 'external_gene_name', 'gene_biotype', 'ensembl_gene_id')
+
+# run the query
+
+annot_2 <- getBM(attributes=attributeNames_2, 
+                 filters = filterType, 
+                 values = gene_ids2, 
+                 mart = ensembl)
+
+annotLvV_2 <- as.data.frame(res2Hut78)%>% 
+  rownames_to_column("ensembl_gene_id_version") #create DF from sig counts then change rows to column names this?
+
+fV_2 <- rownames(res2Hut78) #??
+
+ensembl_gene_id_2 <- str_replace(fV_2,
+                               pattern = ".[0-9]+$",
+                               replacement = "")
+
+annotLvV_2 [, "ensembl_gene_id"] <- ensembl_gene_id_2
+
+res_final2 <- merge (annotLvV_2, annot_2, by="ensembl_gene_id")
+write.csv(as.data.frame(res_final2), file="HuT_DpVp_HuT_Control_final.csv") #writes out final DF of the comparison you're doing
+
+```
+```{r}
+library(dplyr)
 library(gprofiler2)
+library(tidyverse)
+library(gProfileR)
+```
 
-# This is an example with the Hut78, but we can do something similar for the MCF7. 
-# Now we're going to use the gprofiler library to assign gene names to the data. 
-# Right now, all we have is the ENSG ID
 
-res2Hut78_v2 <- res2Hut78 %>%
+```{r}
+# Converting ENSG namespace to HGNC
+res2Hut78_v2 <- res2Hut78 %>% 
   rownames_to_column('ENSG_ID')
-
 # Get the names from a gProfiler query
 resOrdered_name <- gconvert(res2Hut78_v2$ENSG_ID, organism = "hsapiens", target = "HGNC", filter_na = F) %>%
   dplyr::select(input, name) %>%
   dplyr::rename(ENSG_ID = input, gene_name = name) # change 'input' column name to 'ENSG_ID'
+#above code converts ENSG_ID column names of res2Hut78_v2 DF to gene names from the hsapiens database and stores the converted changes into a new obj resOrdered_name?
 
 # Join names dataframe to resOrdered df by the common column of ENSG_ID
 res_export <- inner_join(resOrdered_name, res2Hut78_v2 , by = "ENSG_ID")
-
 # Export the dataframe to a csv file for downstream analysis
-write.csv(res_export, file = "myfilename.csv", col.names = TRUE)
+write.csv(res_export, file = "HuT78_DpVp_v_Control_gene_names.csv", col.names = TRUE)
 
+df_METTL7A <- filter(resOrdered_name, rownames == "METTL7A")
 
 ```
 
+
+# Plot counts of individual genes of interest
+```{r}
+##Data Visualization
+
+# Plot counts - check counts of individual genes
+plotCounts(dds, gene="ENSG00000136997.17", intgroup="status")  #Myc
+plotCounts(dds, gene="ENSG00000026025.15", intgroup="status")  #Vim
+plotCounts(dds, gene="ENSG00000165819.11", intgroup="status")  #METTL3
+plotCounts(dds, gene="ENSG00000145388.14", intgroup="status")  #METTL14
+plotCounts(dds, gene="ENSG00000140718.20", intgroup="status")  #FTO
+plotCounts(dds, gene="ENSG00000091542.8", intgroup="status")   #ALKBH5
+plotCounts(dds, gene="ENSG00000185432.11", intgroup="status")  #Mettl7
+
+# Visualize most significantly expressed gene: METTL7
+plotCounts(dds, gene = "ENSG00000185432.11", intgroup = ("status"),
+           returnData = T) %>% 
+  ggplot(aes(x=status, y=(count))) + ggtitle("ENSG00000185432.11; METTL7A") +
+  geom_point(aes(fill=status), pch=21, size=4) +
+  # facet_wrap(~CellType) +
+  expand_limits(y=0)
+```
+```{r}
+#more libraries needed for upset plot
+library(EnhancedVolcano)
+library(UpSetR)
+library(plyr)
+library(reshape2)
+library(dplyr)
+library(plotly)
+```
+
+```{r}
+#creating data frames for each comparison of interest
+DpVpvControl_padjF <- as.data.frame(resHut78_sig) %>%
+  rownames_to_column(var = "geneID")%>% 
+  dplyr::select(geneID) %>%
+  dplyr::mutate(set="DpVpvControl", val=1)
+
+MCF7300vControl_padjF <- as.data.frame(resMCF7_sig) %>%
+  rownames_to_column(var = "geneID") %>%
+  dplyr::select(geneID) %>%
+  dplyr::mutate(set="MCF7300vControl", val=1)
+```
+
+```{r}
+#combine the DFs of each comparison
+padj_long <- bind_rows(DpVpvControl_padjF, MCF7300vControl_padjF)
+```
+
+```{r}
+#convert DF to wide format
+test1<-acast(padj_long,geneID~set,value.var="val",fill=0)
+```
+
+```{r}
+#force as DF
+test1<-as.data.frame(test1)
+
+# 1st column must be a name
+test1$name=rownames(test1)
+
+test2 <- test1 %>%
+  dplyr::select(name, DpVpvControl, MCF7300vControl)
+
+# Generate the upset plot and print out to pdf. 
+upset(test2,nsets = 2, nintersects = NA, order.by = "freq")
+#pdf('insert pdf file name here') # name of pdf to save
+upset(test2,nsets = 4, nintersects = NA, order.by = "freq")
+#dev.off()
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
 
