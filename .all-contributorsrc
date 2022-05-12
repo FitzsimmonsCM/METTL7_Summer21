@@ -14,7 +14,10 @@
         "code",
         "doc",
         "ideas",
-        "question"
+        "question",
+        "bug",
+        "tutorial",
+        "projectManagement"
       ]
     },
     {
